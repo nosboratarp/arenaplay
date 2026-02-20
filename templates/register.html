@@ -1,23 +1,32 @@
 <!DOCTYPE html>
 <html>
 <head>
-<title>ArenaPlay - Cadastro</title>
-<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <title>ArenaPlay - Cadastro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
 
-<div class="login-box">
-    <h2>Cadastro ArenaPlay</h2>
+<div class="auth-container">
+    <div class="auth-card">
+        <h2>Cadastro ArenaPlay</h2>
 
-    <form method="POST">
-        <input type="email" name="email" placeholder="E-mail" required>
-        <input type="password" name="password" placeholder="Senha" required>
-        <button class="button" type="submit">Cadastrar</button>
-    </form>
+        <form method="POST">
+            <div class="form-group">
+                <input type="email" name="email" placeholder="E-mail" required>
+            </div>
 
-    <p style="margin-top:15px;">
-        Já tem conta? <a href="/" style="color:#22c55e;">Login</a>
-    </p>
+            <div class="form-group">
+                <input type="password" name="password" placeholder="Senha" required>
+            </div>
+
+            <button class="btn-primary" type="submit">Cadastrar</button>
+        </form>
+
+        <p class="auth-footer">
+            Já tem conta?
+            <a href="/">Login</a>
+        </p>
+    </div>
 </div>
 
 </body>
