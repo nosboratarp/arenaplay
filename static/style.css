@@ -339,3 +339,19 @@ p {
     text-decoration: none;
     font-weight: bold;
 }
+.btn-back {
+    display: inline-block;
+    margin: 15px 0 25px 0;
+    padding: 8px 14px;
+    background: #1f2937;
+    color: #22c55e;
+    text-decoration: none;
+    border-radius: 8px;
+    font-weight: 500;
+    transition: 0.3s;
+}
+
+.btn-back:hover {
+    background: #111827;
+    transform: translateX(-3px);
+}
