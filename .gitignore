@@ -1,4 +1,5 @@
 *.db
+lances/
 token.pickle
 oauth_credentials.json
 google_drive_credentials.json
