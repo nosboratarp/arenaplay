@@ -1,0 +1,7 @@
+*.db
+token.pickle
+oauth_credentials.json
+google_drive_credentials.json
+__pycache__/
+*.pyc
+.env

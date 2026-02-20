@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h2>Pagamento via PIX</h2>
+
+<p>Escaneie o QR Code abaixo:</p>
+
+<img src="data:image/png;base64,{{ qr_code_base64 }}" width="250">
+
+<p>Ou copie o código:</p>
+
+<textarea rows="4" style="width:100%">{{ qr_code }}</textarea>
+
+<p>Aguardando pagamento...</p>
+
+{% endblock %}

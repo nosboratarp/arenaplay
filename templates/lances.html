@@ -1,0 +1,41 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+<h1>Lances - {{ data }}</h1>
+
+<div class="video-grid">
+
+    {% for hora, drive_id, status in lances %}
+        <div class="video-card">
+
+            <div class="video-wrapper">
+                <iframe
+                    src="https://drive.google.com/file/d/{{ drive_id }}/preview"
+                    allow="autoplay">
+                </iframe>
+            </div>
+
+            <div class="video-info">
+                <strong>{{ hora }}</strong>
+
+                {% if status == 'PAGO' %}
+                    <a href="/download/{{ drive_id }}" class="download-button">
+                        Baixar Vídeo
+                    </a>
+                {% else %}
+                    <form method="POST" action="/comprar/{{ drive_id }}">
+                        <button class="buy-button">
+                            Comprar Replay - R$ 2,59
+                        </button>
+                    </form>
+                {% endif %}
+
+            </div>
+
+        </div>
+    {% endfor %}
+
+</div>
+
+{% endblock %}
