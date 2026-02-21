@@ -36,4 +36,4 @@ uritemplate==4.2.0
 urllib3==2.6.2
 Werkzeug==3.1.5
 Flask-SQLAlchemy==3.1.1
-psycopg[binary]==3.1.18
+psycopg[binary]==3.3.3
