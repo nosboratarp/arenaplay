@@ -1,74 +1,68 @@
+import os
 import mercadopago
 import uuid
 
 from flask import Flask, render_template, request, redirect, session
 from flask_bcrypt import Bcrypt
-import sqlite3
+from flask_sqlalchemy import SQLAlchemy
+
+# ================================
+# CONFIGURAÇÃO APP
+# ================================
 
 app = Flask(__name__)
-app.secret_key = "arenaplay_secret_key"
-ACCESS_TOKEN = "TEST-8249896473432277-021919-f12e8ceeb7a3f7def915aabadde590ee-277949068"
-sdk = mercadopago.SDK(ACCESS_TOKEN)
 
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY")
+app.config["SQLALCHEMY_DATABASE_URI"] = os.environ.get("DATABASE_URL")
+app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
+
+db = SQLAlchemy(app)
 bcrypt = Bcrypt(app)
 
+ACCESS_TOKEN = os.environ.get("MP_ACCESS_TOKEN")
+sdk = mercadopago.SDK(ACCESS_TOKEN)
+
 # ================================
-# CRIAR BANCO
+# MODELOS
 # ================================
-def init_db():
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            email TEXT UNIQUE,
-            password TEXT
-        )
-    """)
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    email = db.Column(db.String(120), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS lances (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            quadra TEXT,
-            data TEXT,
-            hora TEXT,
-            drive_id TEXT
-        )
-    """)
+class Lance(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    quadra = db.Column(db.String(100))
+    data = db.Column(db.String(20))
+    hora = db.Column(db.String(20))
+    drive_id = db.Column(db.String(200))
 
-    cursor.execute("""
-        CREATE TABLE IF NOT EXISTS pagamentos (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            drive_id TEXT,
-            valor REAL,
-            status TEXT,
-            criado_em DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-    """)
+class Pagamento(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    drive_id = db.Column(db.String(200))
+    valor = db.Column(db.Float)
+    status = db.Column(db.String(20))
+    criado_em = db.Column(db.DateTime, server_default=db.func.now())
 
-    conn.commit()
-    conn.close()
-
-init_db()
+# Criar tabelas
+with app.app_context():
+    db.create_all()
 
 # ================================
 # LOGIN
 # ================================
+
 @app.route("/", methods=["GET", "POST"])
 def login():
     if request.method == "POST":
         email = request.form["email"]
         password = request.form["password"]
 
-        conn = sqlite3.connect("database.db")
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE email=?", (email,))
-        user = cursor.fetchone()
-        conn.close()
+        user = User.query.filter_by(email=email).first()
 
-        if user and bcrypt.check_password_hash(user[2], password):
-            session["user"] = user[1]
+        if user and bcrypt.check_password_hash(user.password, password):
+            session["user"] = user.email
             return redirect("/dashboard")
 
         return "Login inválido"
@@ -78,6 +72,7 @@ def login():
 # ================================
 # DASHBOARD
 # ================================
+
 @app.route("/dashboard")
 def dashboard():
     if "user" not in session:
@@ -85,55 +80,46 @@ def dashboard():
     return render_template("dashboard.html", user=session["user"])
 
 # ================================
-# QUADRA → LISTAR DATAS
+# QUADRA
 # ================================
+
 @app.route("/quadra/<nome>")
 def quadra(nome):
     if "user" not in session:
         return redirect("/")
 
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT DISTINCT data
-        FROM lances
-        WHERE quadra=?
-        ORDER BY data DESC
-    """, (nome,))
-
-    datas = cursor.fetchall()
-    conn.close()
+    datas = db.session.query(Lance.data)\
+        .filter_by(quadra=nome)\
+        .distinct()\
+        .order_by(Lance.data.desc())\
+        .all()
 
     return render_template("quadra.html", quadra=nome, datas=datas)
 
 # ================================
-# DATA → LISTAR LANCES
+# LISTAR LANCES
 # ================================
+
 @app.route("/data/<quadra>/<data>")
 def data_view(quadra, data):
     if "user" not in session:
         return redirect("/")
 
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT l.hora, l.drive_id,
-               COALESCE(
-                   (SELECT status FROM pagamentos p
-                    WHERE p.drive_id = l.drive_id
-                    ORDER BY p.criado_em DESC
-                    LIMIT 1),
-                   'PENDENTE'
-               ) as status_pagamento
-        FROM lances l
-        WHERE l.quadra=? AND l.data=?
-        ORDER BY l.hora DESC
-    """, (quadra, data))
-
-    lances = cursor.fetchall()
-    conn.close()
+    lances = db.session.query(
+        Lance.hora,
+        Lance.drive_id,
+        db.func.coalesce(
+            db.session.query(Pagamento.status)
+            .filter(Pagamento.drive_id == Lance.drive_id)
+            .order_by(Pagamento.criado_em.desc())
+            .limit(1)
+            .scalar_subquery(),
+            "PENDENTE"
+        )
+    ).filter(
+        Lance.quadra == quadra,
+        Lance.data == data
+    ).order_by(Lance.hora.desc()).all()
 
     return render_template(
         "lances.html",
@@ -143,8 +129,9 @@ def data_view(quadra, data):
     )
 
 # ================================
-# COMPRAR REPLAY
+# COMPRAR (PIX)
 # ================================
+
 @app.route("/comprar/<drive_id>", methods=["POST"])
 def comprar(drive_id):
 
@@ -152,26 +139,22 @@ def comprar(drive_id):
         "transaction_amount": 2.59,
         "description": "Replay ArenaPlay",
         "payment_method_id": "pix",
-        "payer": {
-            "email": "teste@arenaplay.com"
-        },
-        "external_reference": drive_id
+        "payer": {"email": session.get("user")},
+        "external_reference": drive_id,
+        "notification_url": "https://arenaplayfut.com.br/webhook"
     }
 
     payment_response = sdk.payment().create(payment_data)
     payment = payment_response["response"]
 
-    # Salvar como PENDENTE
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
+    novo_pagamento = Pagamento(
+        drive_id=drive_id,
+        valor=2.59,
+        status="PENDENTE"
+    )
 
-    cursor.execute("""
-        INSERT INTO pagamentos (drive_id, valor, status)
-        VALUES (?, ?, ?)
-    """, (drive_id, 2.59, "PENDENTE"))
-
-    conn.commit()
-    conn.close()
+    db.session.add(novo_pagamento)
+    db.session.commit()
 
     qr_code = payment["point_of_interaction"]["transaction_data"]["qr_code"]
     qr_code_base64 = payment["point_of_interaction"]["transaction_data"]["qr_code_base64"]
@@ -182,47 +165,49 @@ def comprar(drive_id):
         qr_code_base64=qr_code_base64,
         drive_id=drive_id
     )
+
 # ================================
-# SIMULAR PAGAMENTO
+# WEBHOOK MERCADO PAGO
 # ================================
-@app.route("/pago/<drive_id>")
-def pago(drive_id):
 
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
+@app.route("/webhook", methods=["POST"])
+def webhook():
+    data = request.json
 
-    cursor.execute("""
-        UPDATE pagamentos
-        SET status = 'PAGO'
-        WHERE drive_id = ?
-    """, (drive_id,))
+    if "data" in data and "id" in data["data"]:
+        payment_id = data["data"]["id"]
 
-    conn.commit()
-    conn.close()
+        payment_info = sdk.payment().get(payment_id)["response"]
 
-    return redirect(f"/download/{drive_id}")
+        drive_id = payment_info["external_reference"]
+        status = payment_info["status"]
+
+        if status == "approved":
+            pagamento = Pagamento.query\
+                .filter_by(drive_id=drive_id)\
+                .order_by(Pagamento.criado_em.desc())\
+                .first()
+
+            if pagamento:
+                pagamento.status = "PAGO"
+                db.session.commit()
+
+    return "OK", 200
 
 # ================================
 # DOWNLOAD PROTEGIDO
 # ================================
+
 @app.route("/download/<drive_id>")
 def download(drive_id):
 
-    conn = sqlite3.connect("database.db")
-    cursor = conn.cursor()
-
-    cursor.execute("""
-        SELECT * FROM pagamentos
-        WHERE drive_id=? AND status='PAGO'
-        ORDER BY criado_em DESC
-        LIMIT 1
-    """, (drive_id,))
-
-    pagamento = cursor.fetchone()
-    conn.close()
+    pagamento = Pagamento.query\
+        .filter_by(drive_id=drive_id, status="PAGO")\
+        .order_by(Pagamento.criado_em.desc())\
+        .first()
 
     if not pagamento:
-        return "Pagamento não encontrado ou não aprovado."
+        return "Pagamento não aprovado."
 
     link = f"https://drive.google.com/uc?export=download&id={drive_id}"
     return redirect(link)
@@ -230,6 +215,7 @@ def download(drive_id):
 # ================================
 # CADASTRO
 # ================================
+
 @app.route("/register", methods=["GET", "POST"])
 def register():
     if request.method == "POST":
@@ -238,19 +224,13 @@ def register():
             request.form["password"]
         ).decode("utf-8")
 
-        conn = sqlite3.connect("database.db")
-        cursor = conn.cursor()
-
-        try:
-            cursor.execute(
-                "INSERT INTO users (email, password) VALUES (?, ?)",
-                (email, password)
-            )
-            conn.commit()
-        except:
+        if User.query.filter_by(email=email).first():
             return "Usuário já existe"
 
-        conn.close()
+        novo_usuario = User(email=email, password=password)
+        db.session.add(novo_usuario)
+        db.session.commit()
+
         return redirect("/")
 
     return render_template("register.html")
@@ -258,6 +238,7 @@ def register():
 # ================================
 # LOGOUT
 # ================================
+
 @app.route("/logout")
 def logout():
     session.pop("user", None)
