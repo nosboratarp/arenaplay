@@ -1,4 +1,4 @@
-﻿{% extends "base.html" %}
+{% extends "base.html" %}
 
 {% block content %}
 
@@ -12,12 +12,12 @@
 
     {% for hora, drive_id, status in lances %}
         <div class="video-card">
-           <div class="video-wrapper" onclick="carregarVideo(this, '{{ drive_id }}')">
-                <img
-                   src="https://drive.google.com/thumbnail?id={{ drive_id }}"
-                   class="video-thumb">
-           
-               <div class="play-overlay">▶</div>
+
+            <div class="video-wrapper">
+                <video controls preload="metadata" width="100%" controlsList="nodownload">
+                    <source src="https://drive.google.com/uc?export=download&id={{ drive_id }}" type="video/mp4">
+                    Seu navegador não suporta vídeo.
+                </video>
             </div>
 
             <div class="video-info">
@@ -26,27 +26,29 @@
 
                     {% if status == 'PAGO' %}
                         <span class="status-paid">PAGO</span>
+                    {% elif status == 'CONSUMIDO' %}
+                        <span class="status-paid">CONSUMIDO</span>
                     {% else %}
                         <span class="status-pending">DISPONÍVEL</span>
                     {% endif %}
                 </div>
 
-                  {% if status == 'PAGO' %}
-                      <a href="/download/{{ drive_id }}" class="download-button">
-                          Baixar Vídeo
-                      </a>
-                  
-                  {% elif status == 'CONSUMIDO' %}
-                      <span class="status-used">Download já realizado</span>
-                  
-                  {% else %}
-                      <form method="POST"
-                            action="/comprar/{{ drive_id }}?quadra={{ quadra }}&data={{ data }}">
-                          <button class="buy-button">
-                              Comprar Replay - R$ 2,59
-                          </button>
-                      </form>
-                  {% endif %}
+                {% if status == 'PAGO' %}
+                    <a href="/download/{{ drive_id }}" class="download-button">
+                        Baixar Vídeo
+                    </a>
+
+                {% elif status == 'CONSUMIDO' %}
+                    <span class="status-used">Download já realizado</span>
+
+                {% else %}
+                    <form method="POST"
+                          action="/comprar/{{ drive_id }}?quadra={{ quadra }}&data={{ data }}">
+                        <button class="buy-button">
+                            Comprar Replay - R$ 2,59
+                        </button>
+                    </form>
+                {% endif %}
 
             </div>
 
@@ -54,18 +56,5 @@
     {% endfor %}
 
 </div>
-
-<script>
-function carregarVideo(element, driveId) {
-
-    element.innerHTML = `
-        <div class="video-loading">Carregando...</div>
-        <iframe
-            src="https://drive.google.com/file/d/${driveId}/preview"
-            allow="autoplay">
-        </iframe>
-    `;
-}
-</script>
 
 {% endblock %}
