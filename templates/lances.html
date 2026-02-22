@@ -1,8 +1,12 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block content %}
 
 <h1>Lances - {{ data }}</h1>
+
+<a href="{{ url_for('quadra', nome=quadra) }}" class="btn-back">
+    ← Voltar para Datas
+</a>
 
 <div class="video-grid">
 
@@ -10,10 +14,11 @@
         <div class="video-card">
 
             <div class="video-wrapper">
-                <iframe
-                    src="https://drive.google.com/file/d/{{ drive_id }}/preview"
-                    allow="autoplay">
-                </iframe>
+                <img 
+                    src="https://drive.google.com/thumbnail?id={{ drive_id }}&sz=w1000"
+                    class="video-thumb {% if status != 'PAGO' %}blurred{% endif %}"
+                    alt="Replay ArenaPlay"
+                >
             </div>
 
             <div class="video-info">
