@@ -14,32 +14,32 @@ pygame.init()
 pygame.joystick.init()
 
 if pygame.joystick.get_count() == 0:
-    print("â�Œ Nenhum encoder detectado!")
+    print("Ã¢ï¿½Å’ Nenhum encoder detectado!")
     exit()
 
 joystick = pygame.joystick.Joystick(0)
 joystick.init()
-print("âœ… Encoder pronto:", joystick.get_name())
+print("Ã¢Å“â€¦ Encoder pronto:", joystick.get_name())
 
 
 #from upload_exa_cloud import upload_video
 #from upload_google_drive import upload_video
 #from upload_google_drive_oauth import upload_video
-# ===== CONFIGURAÃ‡Ã•ES =====
+# ===== CONFIGURAÃƒâ€¡Ãƒâ€¢ES =====
 FPS = 15
 PRE_SECONDS = 30
 POST_SECONDS = 5
 BUFFER_SIZE = FPS * PRE_SECONDS
 VIDEO_NAME = "lance_teste.mp4"
 
-# ===== PASTA DA SESSÃƒO =====
+# ===== PASTA DA SESSÃƒÆ’O =====
 SESSION_DATE = datetime.now().strftime("%Y-%m-%d")
 BASE_DIR = os.path.join(os.getcwd(), "lances", SESSION_DATE)
 os.makedirs(BASE_DIR, exist_ok=True)
 
 
-# ===== CÃ‚MERA =====
-# ===== CÃ‚MERA (IM5 SC via RTSP) =====
+# ===== CÃƒâ€šMERA =====
+# ===== CÃƒâ€šMERA (IM5 SC via RTSP) =====
 RTSP_URL = "rtsp://admin:Networks124@192.168.3.135:1857/cam/realmonitor?channel=1&subtype=0"
 
 cap = cv2.VideoCapture(RTSP_URL, cv2.CAP_FFMPEG)
@@ -50,7 +50,7 @@ ret, frame = cap.read()
 
 
 if not ret:
-    print("Erro ao conectar na cÃ¢mera RTSP")
+    print("Erro ao conectar na cÃƒÂ¢mera RTSP")
     exit()
 
 height, width, _ = frame.shape
@@ -64,7 +64,7 @@ print("Sistema iniciado")
 print("Pressione o Botao para salvar o lance")
 print("Pressione 'Q' para sair")
 
-# ===== FUNÃ‡ÃƒO DE SALVAMENTO =====
+# ===== FUNÃƒâ€¡ÃƒÆ’O DE SALVAMENTO =====
 def salvar_lance():
     global cooldown
     cooldown = True
@@ -80,7 +80,36 @@ def salvar_lance():
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(video_path, fourcc, FPS, (width, height))
 
+    # ===============================
+    # ESCREVER FRAMES COM MARCA
+    # ===============================
     for frame in frames:
+
+        overlay = frame.copy()
+
+        texto = "ArenaPlay"
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        escala = 2.5
+        espessura = 6
+
+        (text_width, text_height), _ = cv2.getTextSize(texto, font, escala, espessura)
+
+        pos_x = (width - text_width) // 2
+        pos_y = (height + text_height) // 2
+
+        cv2.putText(
+            overlay,
+            texto,
+            (pos_x, pos_y),
+            font,
+            escala,
+            (0, 255, 0),
+            espessura
+        )
+
+        alpha = 0.15
+        frame = cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0)
+
         out.write(frame)
 
     out.release()
@@ -92,14 +121,8 @@ def salvar_lance():
     # ===============================
     try:
         print("Enviando para o Drive...")
-
         file_id = upload_para_drive(video_path)
-
-        drive_link = f"https://drive.google.com/file/d/{file_id}/preview"
-
         print("[DRIVE] Upload concluído com sucesso!")
-        print("[DRIVE] Link:", drive_link)
-
     except Exception as e:
         print("Erro ao enviar para o Drive:", e)
         cooldown = False
@@ -121,7 +144,6 @@ def salvar_lance():
                 hora=hora,
                 drive_id=file_id
             )
-
             db.session.add(novo_lance)
             db.session.commit()
 
@@ -155,13 +177,13 @@ while True:
         falhas_consecutivas += 1
 
         if not aguardando_stream:
-            print("ðŸŸ¡ Sistema ativo â€” aguardando novo stream da cÃ¢mera para prÃ³ximos lances...")
+            print("Ã°Å¸Å¸Â¡ Sistema ativo Ã¢â‚¬â€� aguardando novo stream da cÃƒÂ¢mera para prÃƒÂ³ximos lances...")
             aguardando_stream = True
 
         time.sleep(0.2)
 
         if falhas_consecutivas >= MAX_FALHAS:
-            print("ðŸ”„ Reconectando cÃ¢mera RTSP...")
+            print("Ã°Å¸â€�â€ž Reconectando cÃƒÂ¢mera RTSP...")
             cap.release()
             time.sleep(2)
             cap = cv2.VideoCapture(RTSP_URL, cv2.CAP_FFMPEG)
@@ -171,7 +193,7 @@ while True:
 
     # ===== STREAM VOLTOU =====
     if aguardando_stream:
-        print("ðŸŸ¢ Stream restabelecido â€” sistema pronto para novo lance")
+        print("Ã°Å¸Å¸Â¢ Stream restabelecido Ã¢â‚¬â€� sistema pronto para novo lance")
         aguardando_stream = False
 
     falhas_consecutivas = 0
@@ -179,24 +201,24 @@ while True:
     # ===== BUFFER =====
     buffer.append(frame)
 
-    # ===== EXIBIÃ‡ÃƒO =====
+    # ===== EXIBIÃƒâ€¡ÃƒÆ’O =====
     cv2.imshow("Meu Lance - Teste", frame)
 
     # ===== TECLADO (apenas para sair) =====
     key = cv2.waitKey(1) & 0xFF
 
     if key == ord('q') or key == ord('Q'):
-        print("Encerrando pelo usuÃ¡rio")
+        print("Encerrando pelo usuÃƒÂ¡rio")
         break
 
     # ===== BOTAO FISICO (encoder USB) =====
     pygame.event.pump()
 
-    if joystick.get_button(0):  # botÃ£o nÃºmero 0
+    if joystick.get_button(0):  # botÃƒÂ£o nÃƒÂºmero 0
         if not cooldown:
             print("Botao Fisico detectado")
             threading.Thread(target=salvar_lance).start()
-            time.sleep(1)  # evita vÃ¡rios disparos seguidos
+            time.sleep(1)  # evita vÃƒÂ¡rios disparos seguidos
 
 
 

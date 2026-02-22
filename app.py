@@ -1,7 +1,7 @@
 import os
 from dotenv import load_dotenv
 
-load_dotenv()  # carrega variáveis do .env
+load_dotenv()  # carrega variÃ¡veis do .env
 import mercadopago
 from flask import Flask, render_template, request, redirect, session
 from flask_bcrypt import Bcrypt
@@ -10,14 +10,14 @@ from datetime import datetime
 timestamp = datetime.now().strftime("%H-%M-%S")
 
 # ================================
-# CONFIGURAÇÃO APP
+# CONFIGURAÃ‡ÃƒO APP
 # ================================
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
 
 # ================================
-# CONFIGURAÇÃO BANCO
+# CONFIGURAÃ‡ÃƒO BANCO
 # ================================
 
 database_url = os.environ.get("DATABASE_URL")
@@ -33,10 +33,10 @@ if database_url:
         )
 
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-    print("🟢 Usando PostgreSQL (produção)")
+    print("ðŸŸ¢ Usando PostgreSQL (produÃ§Ã£o)")
 else:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
-    print("🔵 Usando SQLite local")
+    print("ðŸ”µ Usando SQLite local")
 
 app.config["SQLALCHEMY_TRACK_MODIFICATIONS"] = False
 
@@ -51,10 +51,10 @@ MP_TOKEN = os.environ.get("MP_ACCESS_TOKEN")
 
 if MP_TOKEN:
     sdk = mercadopago.SDK(MP_TOKEN)
-    print("🟢 Mercado Pago ativo")
+    print("ðŸŸ¢ Mercado Pago ativo")
 else:
     sdk = None
-    print("🟡 Mercado Pago não configurado neste ambiente")
+    print("ðŸŸ¡ Mercado Pago nÃ£o configurado neste ambiente")
 
 # ================================
 # MODELOS
@@ -101,7 +101,7 @@ def login():
             session["user"] = user.email
             return redirect("/dashboard")
 
-        return "Login inválido"
+        return "Login invÃ¡lido"
 
     return render_template("login.html")
 
@@ -180,7 +180,7 @@ def data_view(quadra, data):
 def comprar(drive_id):
 
     if not sdk:
-        return "Pagamento indisponível neste ambiente."
+        return "Pagamento indisponÃ­vel neste ambiente."
 
     payment_data = {
         "transaction_amount": 2.59,
@@ -222,7 +222,7 @@ def comprar(drive_id):
 def webhook():
 
     if not sdk:
-        return "SDK não configurado", 400
+        return "SDK nÃ£o configurado", 400
 
     data = request.json
 
@@ -264,7 +264,7 @@ def download(drive_id):
     )
 
     if not pagamento:
-        return "Pagamento não aprovado."
+        return "Pagamento nÃ£o aprovado."
 
     link = f"https://drive.google.com/uc?export=download&id={drive_id}"
     return redirect(link)
@@ -283,7 +283,7 @@ def register():
         ).decode("utf-8")
 
         if User.query.filter_by(email=email).first():
-            return "Usuário já existe"
+            return "UsuÃ¡rio jÃ¡ existe"
 
         novo_usuario = User(email=email, password=password)
         db.session.add(novo_usuario)
