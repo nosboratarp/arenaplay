@@ -142,7 +142,7 @@ def salvar_lance():
 
         with app.app_context():
             novo_lance = Lance(
-                quadra="oratorio1",
+                quadra="oratorio2",
                 data=data,
                 hora=hora,
                 drive_id=file_id
