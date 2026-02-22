@@ -1,8 +1,16 @@
-*.db
-lances/
-token.pickle
+# Variáveis de ambiente
+.env
+
+# Credenciais Google
+service_account.json
 oauth_credentials.json
+token.pickle
 google_drive_credentials.json
+# Python
 __pycache__/
 *.pyc
-.env
+
+# Banco local
+database.db
+*.db
+lances/

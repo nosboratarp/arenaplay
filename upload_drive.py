@@ -1,4 +1,5 @@
 import os
+import json
 import pickle
 from datetime import datetime
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -7,13 +8,12 @@ from googleapiclient.http import MediaFileUpload
 from google.auth.transport.requests import Request
 
 SCOPES = ['https://www.googleapis.com/auth/drive']
-
-PASTA_ORATORIO_ID = "17ZR7xXiOVbyowSudpBVe5gbF2Xgpwgtt"  # Pasta principal Oratorio1
-
+PASTA_ORATORIO_ID = "17ZR7xXiOVbyowSudpBVe5gbF2Xgpwgtt"
 
 def autenticar():
     creds = None
 
+    # Recupera token salvo
     if os.path.exists('token.pickle'):
         with open('token.pickle', 'rb') as token:
             creds = pickle.load(token)
@@ -22,15 +22,22 @@ def autenticar():
         if creds and creds.expired and creds.refresh_token:
             creds.refresh(Request())
         else:
-            flow = InstalledAppFlow.from_client_secrets_file(
-                'oauth_credentials.json', SCOPES)
+            # 🔐 LÊ JSON DA VARIÁVEL DE AMBIENTE
+            oauth_info = json.loads(
+                os.getenv("GOOGLE_OAUTH_CREDENTIALS")
+            )
+
+            flow = InstalledAppFlow.from_client_config(
+                oauth_info,
+                SCOPES
+            )
+
             creds = flow.run_local_server(port=0)
 
         with open('token.pickle', 'wb') as token:
             pickle.dump(creds, token)
 
     return creds
-
 
 def criar_ou_buscar_pasta(service, nome_pasta, parent_id):
     query = f"name='{nome_pasta}' and mimeType='application/vnd.google-apps.folder' and '{parent_id}' in parents and trashed=false"
@@ -65,7 +72,6 @@ def upload_para_drive(caminho_arquivo):
 
     hoje = datetime.now().strftime("%Y-%m-%d")
 
-    # Criar ou buscar pasta da data
     pasta_data_id = criar_ou_buscar_pasta(service, hoje, PASTA_ORATORIO_ID)
 
     file_metadata = {
@@ -83,7 +89,6 @@ def upload_para_drive(caminho_arquivo):
 
     file_id = file.get('id')
 
-    # Tornar público
     service.permissions().create(
         fileId=file_id,
         body={'type': 'anyone', 'role': 'reader'}

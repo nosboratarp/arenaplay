@@ -14,32 +14,32 @@ pygame.init()
 pygame.joystick.init()
 
 if pygame.joystick.get_count() == 0:
-    print("❌ Nenhum encoder detectado!")
+    print("â�Œ Nenhum encoder detectado!")
     exit()
 
 joystick = pygame.joystick.Joystick(0)
 joystick.init()
-print("✅ Encoder pronto:", joystick.get_name())
+print("âœ… Encoder pronto:", joystick.get_name())
 
 
 #from upload_exa_cloud import upload_video
 #from upload_google_drive import upload_video
 #from upload_google_drive_oauth import upload_video
-# ===== CONFIGURAÇÕES =====
+# ===== CONFIGURAÃ‡Ã•ES =====
 FPS = 15
 PRE_SECONDS = 30
 POST_SECONDS = 5
 BUFFER_SIZE = FPS * PRE_SECONDS
 VIDEO_NAME = "lance_teste.mp4"
 
-# ===== PASTA DA SESSÃO =====
+# ===== PASTA DA SESSÃƒO =====
 SESSION_DATE = datetime.now().strftime("%Y-%m-%d")
 BASE_DIR = os.path.join(os.getcwd(), "lances", SESSION_DATE)
 os.makedirs(BASE_DIR, exist_ok=True)
 
 
-# ===== CÂMERA =====
-# ===== CÂMERA (IM5 SC via RTSP) =====
+# ===== CÃ‚MERA =====
+# ===== CÃ‚MERA (IM5 SC via RTSP) =====
 RTSP_URL = "rtsp://admin:Networks124@192.168.3.135:1857/cam/realmonitor?channel=1&subtype=0"
 
 cap = cv2.VideoCapture(RTSP_URL, cv2.CAP_FFMPEG)
@@ -50,7 +50,7 @@ ret, frame = cap.read()
 
 
 if not ret:
-    print("Erro ao conectar na câmera RTSP")
+    print("Erro ao conectar na cÃ¢mera RTSP")
     exit()
 
 height, width, _ = frame.shape
@@ -64,7 +64,7 @@ print("Sistema iniciado")
 print("Pressione o Botao para salvar o lance")
 print("Pressione 'Q' para sair")
 
-# ===== FUNÇÃO DE SALVAMENTO =====
+# ===== FUNÃ‡ÃƒO DE SALVAMENTO =====
 def salvar_lance():
     global cooldown
     cooldown = True
@@ -102,24 +102,28 @@ def salvar_lance():
 
     except Exception as e:
         print("Erro ao enviar para o Drive:", e)
-        file_id = None
-        drive_link = None
+        cooldown = False
+        return
 
     # ===============================
     # REGISTRAR NO BANCO
     # ===============================
     try:
-        from database import salvar_lance as registrar_lance
+        from app import app, db, Lance
 
         data = SESSION_DATE
         hora = timestamp.replace("-", ":")
 
-        registrar_lance(
-            quadra="oratorio1",
-            data=data,
-            hora=hora,
-            drive_id=file_id
-        )
+        with app.app_context():
+            novo_lance = Lance(
+                quadra="oratorio1",
+                data=data,
+                hora=hora,
+                drive_id=file_id
+            )
+
+            db.session.add(novo_lance)
+            db.session.commit()
 
         print("Lance registrado no banco.")
 
@@ -151,13 +155,13 @@ while True:
         falhas_consecutivas += 1
 
         if not aguardando_stream:
-            print("🟡 Sistema ativo — aguardando novo stream da câmera para próximos lances...")
+            print("ðŸŸ¡ Sistema ativo â€” aguardando novo stream da cÃ¢mera para prÃ³ximos lances...")
             aguardando_stream = True
 
         time.sleep(0.2)
 
         if falhas_consecutivas >= MAX_FALHAS:
-            print("🔄 Reconectando câmera RTSP...")
+            print("ðŸ”„ Reconectando cÃ¢mera RTSP...")
             cap.release()
             time.sleep(2)
             cap = cv2.VideoCapture(RTSP_URL, cv2.CAP_FFMPEG)
@@ -167,7 +171,7 @@ while True:
 
     # ===== STREAM VOLTOU =====
     if aguardando_stream:
-        print("🟢 Stream restabelecido — sistema pronto para novo lance")
+        print("ðŸŸ¢ Stream restabelecido â€” sistema pronto para novo lance")
         aguardando_stream = False
 
     falhas_consecutivas = 0
@@ -175,24 +179,24 @@ while True:
     # ===== BUFFER =====
     buffer.append(frame)
 
-    # ===== EXIBIÇÃO =====
+    # ===== EXIBIÃ‡ÃƒO =====
     cv2.imshow("Meu Lance - Teste", frame)
 
     # ===== TECLADO (apenas para sair) =====
     key = cv2.waitKey(1) & 0xFF
 
     if key == ord('q') or key == ord('Q'):
-        print("Encerrando pelo usuário")
+        print("Encerrando pelo usuÃ¡rio")
         break
 
-    # ===== BOTÃO FÍSICO (encoder USB) =====
+    # ===== BOTAO FISICO (encoder USB) =====
     pygame.event.pump()
 
-    if joystick.get_button(0):  # botão número 0
+    if joystick.get_button(0):  # botÃ£o nÃºmero 0
         if not cooldown:
-            print("Botão físico detectado")
+            print("Botao Fisico detectado")
             threading.Thread(target=salvar_lance).start()
-            time.sleep(1)  # evita vários disparos seguidos
+            time.sleep(1)  # evita vÃ¡rios disparos seguidos
 
 
 
