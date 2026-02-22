@@ -30,8 +30,8 @@ print("Ã¢Å“â€¦ Encoder pronto:", joystick.get_name())
 #from upload_google_drive_oauth import upload_video
 # ===== CONFIGURAÃƒâ€¡Ãƒâ€¢ES =====
 FPS = 15
-PRE_SECONDS = 30
-POST_SECONDS = 5
+PRE_SECONDS = 10
+POST_SECONDS = 3
 BUFFER_SIZE = FPS * PRE_SECONDS
 VIDEO_NAME = "lance_teste.mp4"
 

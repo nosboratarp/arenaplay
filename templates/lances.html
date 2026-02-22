@@ -57,7 +57,9 @@
 
 <script>
 function carregarVideo(element, driveId) {
+
     element.innerHTML = `
+        <div class="video-loading">Carregando...</div>
         <iframe
             src="https://drive.google.com/file/d/${driveId}/preview"
             allow="autoplay">
