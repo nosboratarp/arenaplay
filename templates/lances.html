@@ -12,12 +12,12 @@
 
     {% for hora, drive_id, status in lances %}
         <div class="video-card">
-
-            <div class="video-wrapper">
-                <iframe
-                    src="https://drive.google.com/file/d/{{ drive_id }}/preview"
-                    allow="autoplay">
-                </iframe>
+           <div class="video-wrapper" onclick="carregarVideo(this, '{{ drive_id }}')">
+                <img
+                   src="https://drive.google.com/thumbnail?id={{ drive_id }}"
+                   class="video-thumb">
+           
+               <div class="play-overlay">▶</div>
             </div>
 
             <div class="video-info">
@@ -31,18 +31,22 @@
                     {% endif %}
                 </div>
 
-                {% if status == 'PAGO' %}
-                    <a href="/download/{{ drive_id }}" class="download-button">
-                        Baixar Vídeo
-                    </a>
-                {% else %}
-                    <form method="POST"
-                        action="/comprar/{{ drive_id }}?quadra={{ quadra }}&data={{ data }}">
-                        <button class="buy-button">
-                            Comprar Replay - R$ 2,59
-                        </button>
-                    </form>
-                {% endif %}
+                  {% if status == 'PAGO' %}
+                      <a href="/download/{{ drive_id }}" class="download-button">
+                          Baixar Vídeo
+                      </a>
+                  
+                  {% elif status == 'CONSUMIDO' %}
+                      <span class="status-used">Download já realizado</span>
+                  
+                  {% else %}
+                      <form method="POST"
+                            action="/comprar/{{ drive_id }}?quadra={{ quadra }}&data={{ data }}">
+                          <button class="buy-button">
+                              Comprar Replay - R$ 2,59
+                          </button>
+                      </form>
+                  {% endif %}
 
             </div>
 
@@ -50,5 +54,16 @@
     {% endfor %}
 
 </div>
+
+<script>
+function carregarVideo(element, driveId) {
+    element.innerHTML = `
+        <iframe
+            src="https://drive.google.com/file/d/${driveId}/preview"
+            allow="autoplay">
+        </iframe>
+    `;
+}
+</script>
 
 {% endblock %}

@@ -1,4 +1,4 @@
-﻿import os
+import os
 from dotenv import load_dotenv
 
 load_dotenv()  # carrega variÃ¡veis do .env
@@ -259,17 +259,24 @@ def download(drive_id):
 
     pagamento = (
         Pagamento.query
-        .filter_by(drive_id=drive_id, status="PAGO")
+        .filter_by(
+            drive_id=drive_id,
+            status="PAGO",
+            usuario=session.get("user")  # se estiver usando controle por usuário
+        )
         .order_by(Pagamento.criado_em.desc())
         .first()
     )
 
     if not pagamento:
-        return "Pagamento nÃ£o aprovado."
+        return "Pagamento não aprovado ou já utilizado."
+
+    # 🔥 MARCAR COMO CONSUMIDO
+    pagamento.status = "CONSUMIDO"
+    db.session.commit()
 
     link = f"https://drive.google.com/uc?export=download&id={drive_id}"
     return redirect(link)
-
 
 # ================================
 # CADASTRO
