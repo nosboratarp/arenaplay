@@ -261,8 +261,7 @@ def download(drive_id):
         Pagamento.query
         .filter_by(
             drive_id=drive_id,
-            status="PAGO",
-            usuario=session.get("user")  # se estiver usando controle por usuário
+            status="PAGO"
         )
         .order_by(Pagamento.criado_em.desc())
         .first()
@@ -271,7 +270,6 @@ def download(drive_id):
     if not pagamento:
         return "Pagamento não aprovado ou já utilizado."
 
-    # 🔥 MARCAR COMO CONSUMIDO
     pagamento.status = "CONSUMIDO"
     db.session.commit()
 

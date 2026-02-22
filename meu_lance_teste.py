@@ -1,4 +1,7 @@
+﻿
 import os
+from dotenv import load_dotenv
+load_dotenv()
 from datetime import datetime
 import cv2
 import time
