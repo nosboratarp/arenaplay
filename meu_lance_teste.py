@@ -89,8 +89,8 @@ def salvar_lance():
 
         texto = "ArenaPlay"
         font = cv2.FONT_HERSHEY_SIMPLEX
-        escala = 2.5
-        espessura = 6
+        escala = 3.5
+        espessura = 8
 
         (text_width, text_height), _ = cv2.getTextSize(texto, font, escala, espessura)
 
@@ -107,7 +107,7 @@ def salvar_lance():
             espessura
         )
 
-        alpha = 0.15
+        alpha = 0.25
         frame = cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0)
 
         out.write(frame)

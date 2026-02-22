@@ -1,4 +1,4 @@
-body {
+﻿body {
     margin: 0;
     font-family: 'Inter', sans-serif;
     background: linear-gradient(135deg, #0b1220, #111827);
@@ -380,4 +380,80 @@ p {
 
 .blurred {
     filter: blur(8px);
+}
+/* ===== LANCES MOBILE PREMIUM ===== */
+
+.page-title {
+    margin-bottom: 15px;
+}
+
+.video-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 25px;
+}
+
+.video-card {
+    background: #1e293b;
+    border-radius: 18px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+}
+
+.video-wrapper {
+    position: relative;
+    width: 100%;
+    padding-bottom: 56.25%;
+}
+
+.video-wrapper iframe {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border: none;
+    top: 0;
+    left: 0;
+}
+
+.video-info {
+    padding: 18px;
+}
+
+.video-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.hora-badge {
+    background: #0f172a;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-weight: 600;
+    font-size: 14px;
+}
+
+.status-paid {
+    background: #16a34a;
+    color: white;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+.status-pending {
+    background: #f59e0b;
+    color: black;
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-size: 13px;
+}
+
+/* ===== Desktop ===== */
+
+@media (min-width: 900px) {
+    .video-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
 }

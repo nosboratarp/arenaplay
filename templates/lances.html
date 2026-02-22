@@ -2,7 +2,7 @@
 
 {% block content %}
 
-<h1>Lances - {{ data }}</h1>
+<h1 class="page-title">Lances - {{ data }}</h1>
 
 <a href="{{ url_for('quadra', nome=quadra) }}" class="btn-back">
     ← Voltar para Datas
@@ -10,37 +10,44 @@
 
 <div class="video-grid">
 
-{% for hora, drive_id, status in lances %}
-    <div class="video-card">
+    {% for hora, drive_id, status in lances %}
+        <div class="video-card">
 
-        <div class="video-wrapper">
-            <iframe
-                src="https://drive.google.com/file/d/{{ drive_id }}/preview"
-                allow="autoplay">
-            </iframe>
+            <div class="video-wrapper">
+                <iframe
+                    src="https://drive.google.com/file/d/{{ drive_id }}/preview"
+                    allow="autoplay">
+                </iframe>
+            </div>
+
+            <div class="video-info">
+                <div class="video-header">
+                    <span class="hora-badge">{{ hora }}</span>
+
+                    {% if status == 'PAGO' %}
+                        <span class="status-paid">PAGO</span>
+                    {% else %}
+                        <span class="status-pending">DISPONÍVEL</span>
+                    {% endif %}
+                </div>
+
+                {% if status == 'PAGO' %}
+                    <a href="/download/{{ drive_id }}" class="download-button">
+                        Baixar Vídeo
+                    </a>
+                {% else %}
+                    <form method="POST" action="/comprar/{{ drive_id }}">
+                        <button class="buy-button">
+                            Comprar Replay - R$ 2,59
+                        </button>
+                    </form>
+                {% endif %}
+
+            </div>
+
         </div>
-
-        <div class="video-info">
-            <strong>{{ hora }}</strong>
-
-            {% if status == 'PAGO' %}
-                <a href="/download/{{ drive_id }}" class="download-button">
-                    Baixar Vídeo
-                </a>
-            {% else %}
-                <form method="POST" action="/comprar/{{ drive_id }}">
-                    <button class="buy-button">
-                        Comprar Replay - R$ 2,59
-                    </button>
-                </form>
-            {% endif %}
-        </div>
-
-    </div>
-{% endfor %}
+    {% endfor %}
 
 </div>
-
-
 
 {% endblock %}

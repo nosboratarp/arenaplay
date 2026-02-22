@@ -183,7 +183,7 @@ def comprar(drive_id):
         return "Pagamento indisponÃ­vel neste ambiente."
 
     payment_data = {
-        "transaction_amount": 2.59,
+        "transaction_amount": 0.10,
         "description": "Replay ArenaPlay",
         "payment_method_id": "pix",
         "payer": {"email": session.get("user")},
@@ -196,7 +196,7 @@ def comprar(drive_id):
 
     novo_pagamento = Pagamento(
         drive_id=drive_id,
-        valor=2.59,
+        valor=0.10,
         status="PENDENTE",
     )
 
