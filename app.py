@@ -1,4 +1,4 @@
-import os
+﻿import os
 from dotenv import load_dotenv
 
 load_dotenv()  # carrega variÃ¡veis do .env
@@ -207,12 +207,13 @@ def comprar(drive_id):
     qr_code_base64 = payment["point_of_interaction"]["transaction_data"]["qr_code_base64"]
 
     return render_template(
-        "pagamento.html",
-        qr_code=qr_code,
-        qr_code_base64=qr_code_base64,
-        drive_id=drive_id,
+       "pagamento.html",
+       qr_code=qr_code,
+       qr_code_base64=qr_code_base64,
+       drive_id=drive_id,
+       quadra=request.args.get("quadra"),
+       data=request.args.get("data"),
     )
-
 
 # ================================
 # WEBHOOK
@@ -293,6 +294,24 @@ def register():
 
     return render_template("register.html")
 
+# ================================
+# VERIFICAR PAGAMENTO
+# ================================
+
+@app.route("/verificar_pagamento/<drive_id>")
+def verificar_pagamento(drive_id):
+
+    pagamento = (
+        Pagamento.query
+        .filter_by(drive_id=drive_id)
+        .order_by(Pagamento.criado_em.desc())
+        .first()
+    )
+
+    if pagamento and pagamento.status == "PAGO":
+        return {"status": "PAGO"}
+
+    return {"status": "PENDENTE"}
 
 # ================================
 # LOGOUT

@@ -4,14 +4,42 @@
 
 <h2>Pagamento via PIX</h2>
 
-<p>Escaneie o QR Code abaixo:</p>
+<div style="text-align:center; margin-top:30px;">
 
-<img src="data:image/png;base64,{{ qr_code_base64 }}" width="250">
+    <img src="data:image/png;base64,{{ qr_code_base64 }}" width="250">
 
-<p>Ou copie o código:</p>
+    <p style="margin-top:20px;">Ou copie o código:</p>
 
-<textarea rows="4" style="width:100%">{{ qr_code }}</textarea>
+    <textarea rows="4" style="width:100%; max-width:400px;">{{ qr_code }}</textarea>
 
-<p>Aguardando pagamento...</p>
+    <p id="status" style="margin-top:20px; color:#f59e0b; font-weight:bold;">
+        Aguardando pagamento...
+    </p>
+
+</div>
+
+<script>
+
+function verificarStatus() {
+    fetch("/verificar_pagamento/{{ drive_id }}")
+    .then(response => response.json())
+    .then(data => {
+
+        if (data.status === "PAGO") {
+
+            document.getElementById("status").innerHTML =
+                "Pagamento aprovado! Redirecionando...";
+            document.getElementById("status").style.color = "#16a34a";
+
+            setTimeout(() => {
+                window.location.href = "/data/{{ quadra }}/{{ data }}";
+            }, 2000);
+        }
+    });
+}
+
+setInterval(verificarStatus, 4000);
+
+</script>
 
 {% endblock %}

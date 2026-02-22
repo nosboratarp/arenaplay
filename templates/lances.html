@@ -1,4 +1,4 @@
-{% extends "base.html" %}
+﻿{% extends "base.html" %}
 
 {% block content %}
 
@@ -36,7 +36,8 @@
                         Baixar Vídeo
                     </a>
                 {% else %}
-                    <form method="POST" action="/comprar/{{ drive_id }}">
+                    <form method="POST"
+                        action="/comprar/{{ drive_id }}?quadra={{ quadra }}&data={{ data }}">
                         <button class="buy-button">
                             Comprar Replay - R$ 2,59
                         </button>
