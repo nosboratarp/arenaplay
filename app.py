@@ -15,6 +15,7 @@ timestamp = datetime.now().strftime("%H-%M-%S")
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
+app.config["R2_PUBLIC_URL"] = os.environ.get("R2_PUBLIC_URL")
 
 # ================================
 # CONFIGURAÃ‡ÃƒO BANCO
@@ -176,7 +177,7 @@ def data_view(quadra, data):
 # COMPRAR (PIX)
 # ================================
 
-@app.route("/comprar/<drive_id>", methods=["POST"])
+@app.route("/comprar/<path:drive_id>", methods=["POST"])
 def comprar(drive_id):
 
     if not sdk:
@@ -254,26 +255,21 @@ def webhook():
 # DOWNLOAD PROTEGIDO
 # ================================
 
-@app.route("/download/<drive_id>")
+@app.route("/download/<path:drive_id>")
 def download(drive_id):
 
     pagamento = (
         Pagamento.query
-        .filter_by(
-            drive_id=drive_id,
-            status="PAGO"
-        )
+        .filter_by(drive_id=drive_id, status="PAGO")
         .order_by(Pagamento.criado_em.desc())
         .first()
     )
 
     if not pagamento:
-        return "Pagamento não aprovado ou já utilizado."
+        return "Pagamento não aprovado."
 
-    pagamento.status = "CONSUMIDO"
-    db.session.commit()
+    link = f"{os.getenv('R2_PUBLIC_URL')}/{drive_id}"
 
-    link = f"https://drive.google.com/uc?export=download&id={drive_id}"
     return redirect(link)
 
 # ================================
@@ -303,7 +299,7 @@ def register():
 # VERIFICAR PAGAMENTO
 # ================================
 
-@app.route("/verificar_pagamento/<drive_id>")
+@app.route("/verificar_pagamento/<path:drive_id>")
 def verificar_pagamento(drive_id):
 
     pagamento = (

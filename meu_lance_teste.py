@@ -1,4 +1,4 @@
-﻿
+
 import os
 from dotenv import load_dotenv
 load_dotenv()
@@ -10,7 +10,7 @@ import threading
 import winsound
 import pygame
 import time
-from upload_drive import upload_para_drive
+from upload_r2 import upload_para_r2
 
 
 pygame.init()
@@ -123,9 +123,9 @@ def salvar_lance():
     # UPLOAD PARA O DRIVE
     # ===============================
     try:
-        print("Enviando para o Drive...")
-        file_id = upload_para_drive(video_path)
-        print("[DRIVE] Upload concluído com sucesso!")
+        print("Enviando para o R2...")
+        file_id = upload_para_r2(video_path)
+        print("[R2] Upload concluído com sucesso!")
     except Exception as e:
         print("Erro ao enviar para o Drive:", e)
         cooldown = False

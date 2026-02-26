@@ -5,7 +5,7 @@
 <h1 class="page-title">Lances - {{ data }}</h1>
 
 <a href="{{ url_for('quadra', nome=quadra) }}" class="btn-back">
-    ← Voltar para Datas
+    â†� Voltar para Datas
 </a>
 
 <div class="video-grid">
@@ -15,8 +15,8 @@
 
             <div class="video-wrapper">
                 <video controls preload="metadata" width="100%" controlsList="nodownload">
-                    <source src="https://drive.google.com/uc?export=download&id={{ drive_id }}" type="video/mp4">
-                    Seu navegador não suporta vídeo.
+                    <source src="{{ config['R2_PUBLIC_URL'] }}/{{ drive_id }}" type="video/mp4">
+                    Seu navegador nÃ£o suporta vÃ­deo.
                 </video>
             </div>
 
@@ -29,17 +29,17 @@
                     {% elif status == 'CONSUMIDO' %}
                         <span class="status-paid">CONSUMIDO</span>
                     {% else %}
-                        <span class="status-pending">DISPONÍVEL</span>
+                        <span class="status-pending">DISPONÃ�VEL</span>
                     {% endif %}
                 </div>
 
                 {% if status == 'PAGO' %}
                     <a href="/download/{{ drive_id }}" class="download-button">
-                        Baixar Vídeo
+                        Baixar VÃ­deo
                     </a>
 
                 {% elif status == 'CONSUMIDO' %}
-                    <span class="status-used">Download já realizado</span>
+                    <span class="status-used">Download jÃ¡ realizado</span>
 
                 {% else %}
                     <form method="POST"
