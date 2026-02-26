@@ -286,7 +286,7 @@ def register():
         ).decode("utf-8")
 
         if User.query.filter_by(email=email).first():
-            return "UsuÃ¡rio jÃ¡ existe"
+            return "Usuário já existe"
 
         novo_usuario = User(email=email, password=password)
         db.session.add(novo_usuario)
