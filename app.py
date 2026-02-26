@@ -165,13 +165,14 @@ def data_view(quadra, data):
         .all()
     )
 
+
     return render_template(
         "lances.html",
         quadra=quadra,
         data=data,
         lances=lances,
+        r2_public_url=app.config["R2_PUBLIC_URL"]
     )
-
 
 # ================================
 # COMPRAR (PIX)
