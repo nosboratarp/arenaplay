@@ -1,99 +1,104 @@
-
 import os
 from dotenv import load_dotenv
 load_dotenv()
+
 from datetime import datetime
 import cv2
 import time
 from collections import deque
 import threading
-import winsound
 import pygame
-import time
 from upload_r2 import upload_para_r2
 
+# ==============================
+# CONFIGURAÇÕES
+# ==============================
+
+FPS = 15
+PRE_SECONDS = 10
+POST_SECONDS = 3
+BUFFER_SIZE = FPS * PRE_SECONDS
+
+SESSION_DATE = datetime.now().strftime("%Y-%m-%d")
+BASE_DIR = os.path.join(os.getcwd(), "lances", SESSION_DATE)
+os.makedirs(BASE_DIR, exist_ok=True)
+
+# ==============================
+# CÂMERAS (DUAS PARA ORATORIO2)
+# ==============================
+
+RTSP_URL_1 = "rtsp://admin:Networks124@192.168.3.135:1857/cam/realmonitor?channel=1&subtype=0"
+RTSP_URL_2 = "rtsp://admin:Networks124@192.168.3.136:1857/cam/realmonitor?channel=1&subtype=0"
+
+cap1 = cv2.VideoCapture(RTSP_URL_1, cv2.CAP_FFMPEG)
+cap2 = cv2.VideoCapture(RTSP_URL_2, cv2.CAP_FFMPEG)
+
+time.sleep(2)
+
+ret1, frame1 = cap1.read()
+ret2, frame2 = cap2.read()
+
+if not ret1 or not ret2:
+    print("Erro ao conectar em uma das câmeras")
+    exit()
+
+height, width, _ = frame1.shape
+
+# ==============================
+# CONTROLE DO BOTÃO (ENCODER)
+# ==============================
 
 pygame.init()
 pygame.joystick.init()
 
 if pygame.joystick.get_count() == 0:
-    print("Ã¢ï¿½Å’ Nenhum encoder detectado!")
+    print("Nenhum encoder detectado")
     exit()
 
 joystick = pygame.joystick.Joystick(0)
 joystick.init()
-print("Ã¢Å“â€¦ Encoder pronto:", joystick.get_name())
+print("Encoder pronto:", joystick.get_name())
 
+# ==============================
+# BUFFERS DAS DUAS CÂMERAS
+# ==============================
 
-#from upload_exa_cloud import upload_video
-#from upload_google_drive import upload_video
-#from upload_google_drive_oauth import upload_video
-# ===== CONFIGURAÃƒâ€¡Ãƒâ€¢ES =====
-FPS = 15
-PRE_SECONDS = 10
-POST_SECONDS = 3
-BUFFER_SIZE = FPS * PRE_SECONDS
-VIDEO_NAME = "lance_teste.mp4"
+buffer1 = deque(maxlen=BUFFER_SIZE)
+buffer2 = deque(maxlen=BUFFER_SIZE)
 
-# ===== PASTA DA SESSÃƒÆ’O =====
-SESSION_DATE = datetime.now().strftime("%Y-%m-%d")
-BASE_DIR = os.path.join(os.getcwd(), "lances", SESSION_DATE)
-os.makedirs(BASE_DIR, exist_ok=True)
-
-
-# ===== CÃƒâ€šMERA =====
-# ===== CÃƒâ€šMERA (IM5 SC via RTSP) =====
-RTSP_URL = "rtsp://admin:Networks124@192.168.3.135:1857/cam/realmonitor?channel=1&subtype=0"
-
-cap = cv2.VideoCapture(RTSP_URL, cv2.CAP_FFMPEG)
-
-time.sleep(2)  # estabiliza o stream
-
-ret, frame = cap.read()
-
-
-if not ret:
-    print("Erro ao conectar na cÃƒÂ¢mera RTSP")
-    exit()
-
-height, width, _ = frame.shape
-
-
-
-buffer = deque(maxlen=BUFFER_SIZE)
 cooldown = False
 
 print("Sistema iniciado")
-print("Pressione o Botao para salvar o lance")
-print("Pressione 'Q' para sair")
+print("Pressione o botão para salvar o lance")
+print("Pressione Q para sair")
 
-# ===== FUNÃƒâ€¡ÃƒÆ’O DE SALVAMENTO =====
-def salvar_lance():
-    global cooldown
-    cooldown = True
+# ==============================
+# FUNÇÃO PARA SALVAR LANCE
+# ==============================
 
-    print("Salvando lance...")
+def salvar_lance(buffer, sufixo):
+    print(f"Salvando lance {sufixo}...")
 
     timestamp = datetime.now().strftime("%H-%M-%S")
-    video_name = f"lance_{timestamp}.mp4"
+    video_name = f"lance_{timestamp}_{sufixo}.mp4"
     video_path = os.path.join(BASE_DIR, video_name)
 
     frames = list(buffer)
 
+    if not frames:
+        print("Buffer vazio")
+        return
+
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(video_path, fourcc, FPS, (width, height))
 
-    # ===============================
-    # ESCREVER FRAMES COM MARCA
-    # ===============================
     for frame in frames:
-
         overlay = frame.copy()
 
         texto = "ArenaPlay"
         font = cv2.FONT_HERSHEY_SIMPLEX
-        escala = 3.5
-        espessura = 8
+        escala = 3.0
+        espessura = 6
 
         (text_width, text_height), _ = cv2.getTextSize(texto, font, escala, espessura)
 
@@ -110,31 +115,16 @@ def salvar_lance():
             espessura
         )
 
-        alpha = 0.25
-        frame = cv2.addWeighted(overlay, alpha, frame, 1 - alpha, 0)
-
+        frame = cv2.addWeighted(overlay, 0.25, frame, 0.75, 0)
         out.write(frame)
 
     out.release()
 
-    print(f"Lance salvo localmente: {video_path}")
-
-    # ===============================
-    # UPLOAD PARA O DRIVE
-    # ===============================
+    print("Upload para R2...")
     try:
-        print("Enviando para o R2...")
         file_id = upload_para_r2(video_path)
-        print("[R2] Upload concluído com sucesso!")
-    except Exception as e:
-        print("Erro ao enviar para o Drive:", e)
-        cooldown = False
-        return
+        print("Upload concluído")
 
-    # ===============================
-    # REGISTRAR NO BANCO
-    # ===============================
-    try:
         from app import app, db, Lance
 
         data = SESSION_DATE
@@ -150,81 +140,46 @@ def salvar_lance():
             db.session.add(novo_lance)
             db.session.commit()
 
-        print("Lance registrado no banco.")
+        print(f"Lance {sufixo} registrado no banco")
 
     except Exception as e:
-        print("Erro ao registrar no banco:", e)
+        print("Erro ao registrar lance:", e)
 
-    # ===============================
-    # SOM DE CONFIRMAÇÃO
-    # ===============================
-    try:
-        winsound.Beep(1000, 120)
-        winsound.Beep(1200, 120)
-    except:
-        pass
+# ==============================
+# LOOP PRINCIPAL
+# ==============================
 
-    cooldown = False
-
-# ===== CONTROLE DE ESTADO =====
-aguardando_stream = False
-MAX_FALHAS = 15
-falhas_consecutivas = 0
-
-# ===== LOOP PRINCIPAL =====
 while True:
-    ret, frame = cap.read()
 
-    # ===== TRATAMENTO DE FALHA RTSP =====
-    if not ret:
-        falhas_consecutivas += 1
+    ret1, frame1 = cap1.read()
+    ret2, frame2 = cap2.read()
 
-        if not aguardando_stream:
-            print("Ã°Å¸Å¸Â¡ Sistema ativo Ã¢â‚¬â€� aguardando novo stream da cÃƒÂ¢mera para prÃƒÂ³ximos lances...")
-            aguardando_stream = True
+    if ret1:
+        buffer1.append(frame1)
+        cv2.imshow("Camera 1", frame1)
 
-        time.sleep(0.2)
+    if ret2:
+        buffer2.append(frame2)
+        cv2.imshow("Camera 2", frame2)
 
-        if falhas_consecutivas >= MAX_FALHAS:
-            print("Ã°Å¸â€�â€ž Reconectando cÃƒÂ¢mera RTSP...")
-            cap.release()
-            time.sleep(2)
-            cap = cv2.VideoCapture(RTSP_URL, cv2.CAP_FFMPEG)
-            falhas_consecutivas = 0
-
-        continue
-
-    # ===== STREAM VOLTOU =====
-    if aguardando_stream:
-        print("Ã°Å¸Å¸Â¢ Stream restabelecido Ã¢â‚¬â€� sistema pronto para novo lance")
-        aguardando_stream = False
-
-    falhas_consecutivas = 0
-
-    # ===== BUFFER =====
-    buffer.append(frame)
-
-    # ===== EXIBIÃƒâ€¡ÃƒÆ’O =====
-    cv2.imshow("Meu Lance - Teste", frame)
-
-    # ===== TECLADO (apenas para sair) =====
     key = cv2.waitKey(1) & 0xFF
 
     if key == ord('q') or key == ord('Q'):
-        print("Encerrando pelo usuÃƒÂ¡rio")
+        print("Encerrando sistema")
         break
 
-    # ===== BOTAO FISICO (encoder USB) =====
     pygame.event.pump()
 
-    if joystick.get_button(0):  # botÃƒÂ£o nÃƒÂºmero 0
+    if joystick.get_button(0):
         if not cooldown:
-            print("Botao Fisico detectado")
-            threading.Thread(target=salvar_lance).start()
-            time.sleep(1)  # evita vÃƒÂ¡rios disparos seguidos
+            cooldown = True
+    
+            salvar_lance(buffer1, "cam1")
+            salvar_lance(buffer2, "cam2")
+    
+            time.sleep(1)
+            cooldown = False
 
-
-
-
-cap.release()
+cap1.release()
+cap2.release()
 cv2.destroyAllWindows()

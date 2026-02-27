@@ -52,10 +52,10 @@ MP_TOKEN = os.environ.get("MP_ACCESS_TOKEN")
 
 if MP_TOKEN:
     sdk = mercadopago.SDK(MP_TOKEN)
-    print("ðŸŸ¢ Mercado Pago ativo")
+    print("Mercado Pago ativo")
 else:
     sdk = None
-    print("ðŸŸ¡ Mercado Pago nÃ£o configurado neste ambiente")
+    print(" Mercado Pago não configurado neste ambiente")
 
 # ================================
 # MODELOS
@@ -102,7 +102,7 @@ def login():
             session["user"] = user.email
             return redirect("/dashboard")
 
-        return "Login invÃ¡lido"
+        return "Login inválido"
 
     return render_template("login.html")
 
@@ -182,7 +182,7 @@ def data_view(quadra, data):
 def comprar(drive_id):
 
     if not sdk:
-        return "Pagamento indisponÃ­vel neste ambiente."
+        return "Pagamento indisponível neste ambiente."
 
     payment_data = {
         "transaction_amount": 0.10,
