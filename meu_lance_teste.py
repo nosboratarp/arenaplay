@@ -14,8 +14,8 @@ from upload_r2 import upload_para_r2
 # CONFIGURAÇÕES
 # ==============================
 
-FPS = 15
-PRE_SECONDS = 10
+FPS = 20
+PRE_SECONDS = 20
 POST_SECONDS = 3
 BUFFER_SIZE = FPS * PRE_SECONDS
 
@@ -27,8 +27,8 @@ os.makedirs(BASE_DIR, exist_ok=True)
 # CÂMERAS (DUAS PARA ORATORIO2)
 # ==============================
 
-RTSP_URL_1 = "rtsp://admin:Networks124@192.168.3.135:1857/cam/realmonitor?channel=1&subtype=0"
-RTSP_URL_2 = "rtsp://admin:Networks124@192.168.3.136:1857/cam/realmonitor?channel=1&subtype=0"
+RTSP_URL_1 = "rtsp://admin:Networks124@192.168.82.4:1857/cam/realmonitor?channel=1&subtype=0"
+RTSP_URL_2 = "rtsp://admin:Networks124@192.168.82.152:1857/cam/realmonitor?channel=1&subtype=0"
 
 cap1 = cv2.VideoCapture(RTSP_URL_1, cv2.CAP_FFMPEG)
 cap2 = cv2.VideoCapture(RTSP_URL_2, cv2.CAP_FFMPEG)
@@ -89,13 +89,17 @@ def salvar_lance(buffer, sufixo):
         print("Buffer vazio")
         return
 
+    # ==============================
+    # 1️⃣ GERAÇÃO DO VÍDEO (OpenCV)
+    # ==============================
+
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(video_path, fourcc, FPS, (width, height))
 
     for frame in frames:
         overlay = frame.copy()
 
-        texto = "ArenaPlay"
+        texto = ""
         font = cv2.FONT_HERSHEY_SIMPLEX
         escala = 3.0
         espessura = 6
@@ -120,7 +124,43 @@ def salvar_lance(buffer, sufixo):
 
     out.release()
 
+    # ==============================
+    # 2️⃣ OTIMIZAÇÃO PARA STREAMING
+    # ==============================
+
+    print("Aplicando faststart para streaming...")
+
+    temp_path = video_path.replace(".mp4", "_fast.mp4")
+
+    try:
+        import subprocess
+
+        subprocess.run([
+            r"C:\ffmpeg\bin\ffmpeg.exe",
+            "-y",
+            "-i", video_path,
+            "-c:v", "libx264",
+            "-preset", "fast",
+            "-profile:v", "high",
+            "-level", "4.1",
+            "-pix_fmt", "yuv420p",
+            "-movflags", "+faststart",
+            temp_path
+        ], check=True)
+
+        os.replace(temp_path, video_path)
+        print("Vídeo otimizado com sucesso.")
+
+    except Exception as e:
+        print("Erro ao aplicar faststart:", e)
+        print("Continuando com vídeo original (pode não funcionar streaming).")
+
+    # ==============================
+    # 3️⃣ UPLOAD PARA R2
+    # ==============================
+
     print("Upload para R2...")
+
     try:
         file_id = upload_para_r2(video_path)
         print("Upload concluído")

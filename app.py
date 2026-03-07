@@ -7,6 +7,9 @@ from flask import Flask, render_template, request, redirect, session
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 from datetime import datetime
+import requests
+from flask import Response
+
 timestamp = datetime.now().strftime("%H-%M-%S")
 
 # ================================
@@ -185,7 +188,7 @@ def comprar(drive_id):
         return "Pagamento indisponível neste ambiente."
 
     payment_data = {
-        "transaction_amount": 0.10,
+        "transaction_amount": 2.49,
         "description": "Replay ArenaPlay",
         "payment_method_id": "pix",
         "payer": {"email": session.get("user")},
@@ -198,7 +201,7 @@ def comprar(drive_id):
 
     novo_pagamento = Pagamento(
         drive_id=drive_id,
-        valor=0.10,
+        valor=2.49,
         status="PENDENTE",
     )
 
@@ -271,8 +274,15 @@ def download(drive_id):
 
     link = f"{os.getenv('R2_PUBLIC_URL')}/{drive_id}"
 
-    return redirect(link)
+    r = requests.get(link, stream=True)
 
+    return Response(
+        r.iter_content(chunk_size=8192),
+        headers={
+            "Content-Disposition": f"attachment; filename={drive_id.split('/')[-1]}",
+            "Content-Type": "video/mp4"
+        }
+    )
 # ================================
 # CADASTRO
 # ================================
