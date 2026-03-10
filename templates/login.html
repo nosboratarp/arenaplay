@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>ArenaPlay - Login</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+	<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
 </head>
 <body class="login-body">
 
@@ -12,9 +13,14 @@
     <div class="login-card">
 
         <div class="login-header">
-            <h1>ArenaPlay</h1>
-            <p>Plataforma inteligente de replay esportivo</p>
-        </div>
+
+			<img src="{{ url_for('static', filename='logo.png') }}" class="login-logo">
+
+			<h1>ArenaPlay</h1>
+
+			<p>Plataforma inteligente de replay esportivo</p>
+
+		</div>
 
         <form method="POST" class="login-form">
 

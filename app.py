@@ -37,7 +37,7 @@ if database_url:
         )
 
     app.config["SQLALCHEMY_DATABASE_URI"] = database_url
-    print("ðŸŸ¢ Usando PostgreSQL (produÃ§Ã£o)")
+    print(" Usando PostgreSQL (produção)")
 else:
     app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///database.db"
     print("ðŸ”µ Usando SQLite local")
@@ -58,7 +58,7 @@ if MP_TOKEN:
     print("Mercado Pago ativo")
 else:
     sdk = None
-    print(" Mercado Pago não configurado neste ambiente")
+    print(" Mercado Pago")
 
 # ================================
 # MODELOS

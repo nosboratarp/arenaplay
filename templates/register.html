@@ -1,16 +1,39 @@
 <!DOCTYPE html>
-<html>
+<html lang="pt-BR">
+
 <head>
-    <title>ArenaPlay - Cadastro</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ArenaPlay - Cadastro</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 <body>
 
 <div class="auth-container">
+
     <div class="auth-card">
+
+        <!-- LOGO -->
+        <div style="text-align:center;margin-bottom:20px;">
+
+            <img src="{{ url_for('static', filename='logo.png') }}"
+                 style="width:90px;filter: drop-shadow(0 0 10px rgba(34,197,94,0.5));">
+
+        </div>
+
         <h2>Cadastro ArenaPlay</h2>
 
+        <p style="color:#9ca3af;margin-bottom:25px;">
+            Crie sua conta para acessar os replays das partidas
+        </p>
+
         <form method="POST">
+
             <div class="form-group">
                 <input type="email" name="email" placeholder="E-mail" required>
             </div>
@@ -19,14 +42,19 @@
                 <input type="password" name="password" placeholder="Senha" required>
             </div>
 
-            <button class="btn-primary" type="submit">Cadastrar</button>
+            <button class="btn-primary" type="submit">
+                Cadastrar
+            </button>
+
         </form>
 
         <p class="auth-footer">
             Já tem conta?
             <a href="/">Login</a>
         </p>
+
     </div>
+
 </div>
 
 </body>

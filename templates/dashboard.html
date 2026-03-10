@@ -1,32 +1,62 @@
 ﻿<!DOCTYPE html>
-<html>
+<html lang="pt-BR">
 <head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
 <title>ArenaPlay - Dashboard</title>
+
 <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
 </head>
+
 <body>
 
+<!-- SIDEBAR -->
 <div class="sidebar">
-    <h2>ArenaPlay</h2>
-    <a href="/dashboard">Quadras</a>
-    <a href="/logout">Sair</a>
+
+    <div class="sidebar-logo">
+
+        <img src="{{ url_for('static', filename='logo.png') }}" alt="ArenaPlay Logo">
+
+        <h2>ArenaPlay</h2>
+
+    </div>
+
+    <a href="/dashboard">⚽ Quadras</a>
+    <a href="/logout">🚪 Sair</a>
+
 </div>
 
+
+<!-- CONTEÚDO -->
 <div class="content">
+
     <h1>Bem-vindo, {{ user }}</h1>
-    <p>Escolha o quadra para ver os lances</p>
 
-    <div class="card" onclick="window.location='/quadra/oratorio1'">
-        Oratório 1
+    <p>Escolha a quadra para ver os lances</p>
+
+
+    <div class="quadras-grid">
+
+        <div class="quadra-card" onclick="window.location='/quadra/oratorio1'">
+            <h3>⚽ Oratório 1</h3>
+            <p>Ver lances e replays</p>
+        </div>
+
+        <div class="quadra-card" onclick="window.location='/quadra/oratorio2'">
+            <h3>⚽ Oratório 2</h3>
+            <p>Ver lances e replays</p>
+        </div>
+
+        <div class="quadra-card" onclick="window.location='/quadra/oratorio3'">
+            <h3>⚽ Oratório 3</h3>
+            <p>Ver lances e replays</p>
+        </div>
+
     </div>
 
-    <div class="card" onclick="window.location='/quadra/oratorio2'">
-        Oratório 2
-    </div>
-
-    <div class="card" onclick="window.location='/quadra/oratorio3'">
-       Oratório 3
-    </div>
 </div>
 
 </body>
