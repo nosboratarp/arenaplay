@@ -665,3 +665,47 @@ transform:translateY(-6px);
 background:#243449;
 box-shadow:0 15px 35px rgba(0,0,0,0.5);
 }
+/* ================= MOBILE ================= */
+
+@media (max-width: 768px){
+
+/* Sidebar vira topo */
+.sidebar{
+position:relative;
+width:100%;
+height:auto;
+display:flex;
+flex-direction:row;
+align-items:center;
+justify-content:space-between;
+padding:10px 20px;
+}
+
+/* Logo menor */
+.sidebar-logo img{
+width:40px;
+}
+
+/* Menu lado a lado */
+.sidebar a{
+margin-left:15px;
+font-size:14px;
+}
+
+/* Conteúdo ocupa tela toda */
+.content{
+margin-left:0;
+padding:20px;
+}
+
+/* Cards um abaixo do outro */
+.quadras-grid{
+grid-template-columns:1fr;
+}
+
+/* Texto menor */
+h1{
+font-size:22px;
+}
+
+}
