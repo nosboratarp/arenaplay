@@ -24,28 +24,38 @@ BASE_DIR = os.path.join(os.getcwd(), "lances", SESSION_DATE)
 os.makedirs(BASE_DIR, exist_ok=True)
 
 # ==============================
-# CÂMERAS (DUAS PARA ORATORIO2)
+# CÂMERAS
 # ==============================
 
-RTSP_URL_1 = "rtsp://admin:Networks124@192.168.82.4:1857/cam/realmonitor?channel=1&subtype=0"
-RTSP_URL_2 = "rtsp://admin:Networks124@192.168.82.152:1857/cam/realmonitor?channel=1&subtype=0"
+RTSP_URL_1 = "rtsp://admin:Networks124@192.168.3.140:1857/cam/realmonitor?channel=1&subtype=0"
+RTSP_URL_2 = "rtsp://admin:Networks124@192.168.3.139:1857/cam/realmonitor?channel=1&subtype=0"
 
-cap1 = cv2.VideoCapture(RTSP_URL_1, cv2.CAP_FFMPEG)
-cap2 = cv2.VideoCapture(RTSP_URL_2, cv2.CAP_FFMPEG)
 
-time.sleep(2)
+def conectar_camera(rtsp):
+    print("Conectando câmera:", rtsp)
+    cap = cv2.VideoCapture(rtsp, cv2.CAP_FFMPEG)
+    time.sleep(2)
 
-ret1, frame1 = cap1.read()
-ret2, frame2 = cap2.read()
+    if cap.isOpened():
+        print("Câmera conectada")
+        return cap
+    else:
+        print("Falha ao conectar câmera")
+        return None
 
-if not ret1 or not ret2:
-    print("Erro ao conectar em uma das câmeras")
+
+cap1 = conectar_camera(RTSP_URL_1)
+cap2 = conectar_camera(RTSP_URL_2)
+
+if cap1 is None or cap2 is None:
+    print("Erro ao conectar nas câmeras")
     exit()
 
+ret1, frame1 = cap1.read()
 height, width, _ = frame1.shape
 
 # ==============================
-# CONTROLE DO BOTÃO (ENCODER)
+# CONTROLE DO BOTÃO
 # ==============================
 
 pygame.init()
@@ -57,10 +67,11 @@ if pygame.joystick.get_count() == 0:
 
 joystick = pygame.joystick.Joystick(0)
 joystick.init()
+
 print("Encoder pronto:", joystick.get_name())
 
 # ==============================
-# BUFFERS DAS DUAS CÂMERAS
+# BUFFERS
 # ==============================
 
 buffer1 = deque(maxlen=BUFFER_SIZE)
@@ -68,16 +79,20 @@ buffer2 = deque(maxlen=BUFFER_SIZE)
 
 cooldown = False
 
+# controle de congelamento
+last_frame_cam1 = time.time()
+last_frame_cam2 = time.time()
+
 print("Sistema iniciado")
-print("Pressione o botão para salvar o lance")
-print("Pressione Q para sair")
+print("Pressione botão para salvar lance")
 
 # ==============================
-# FUNÇÃO PARA SALVAR LANCE
+# FUNÇÃO SALVAR LANCE
 # ==============================
 
 def salvar_lance(buffer, sufixo):
-    print(f"Salvando lance {sufixo}...")
+
+    print(f"Salvando lance {sufixo}")
 
     timestamp = datetime.now().strftime("%H-%M-%S")
     video_name = f"lance_{timestamp}_{sufixo}.mp4"
@@ -89,46 +104,19 @@ def salvar_lance(buffer, sufixo):
         print("Buffer vazio")
         return
 
-    # ==============================
-    # 1️⃣ GERAÇÃO DO VÍDEO (OpenCV)
-    # ==============================
-
     fourcc = cv2.VideoWriter_fourcc(*'mp4v')
     out = cv2.VideoWriter(video_path, fourcc, FPS, (width, height))
 
     for frame in frames:
-        overlay = frame.copy()
-
-        texto = ""
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        escala = 3.0
-        espessura = 6
-
-        (text_width, text_height), _ = cv2.getTextSize(texto, font, escala, espessura)
-
-        pos_x = (width - text_width) // 2
-        pos_y = (height + text_height) // 2
-
-        cv2.putText(
-            overlay,
-            texto,
-            (pos_x, pos_y),
-            font,
-            escala,
-            (0, 255, 0),
-            espessura
-        )
-
-        frame = cv2.addWeighted(overlay, 0.25, frame, 0.75, 0)
         out.write(frame)
 
     out.release()
 
     # ==============================
-    # 2️⃣ OTIMIZAÇÃO PARA STREAMING
+    # OTIMIZAÇÃO FFMPEG
     # ==============================
 
-    print("Aplicando faststart para streaming...")
+    print("Aplicando faststart")
 
     temp_path = video_path.replace(".mp4", "_fast.mp4")
 
@@ -149,21 +137,17 @@ def salvar_lance(buffer, sufixo):
         ], check=True)
 
         os.replace(temp_path, video_path)
-        print("Vídeo otimizado com sucesso.")
 
     except Exception as e:
-        print("Erro ao aplicar faststart:", e)
-        print("Continuando com vídeo original (pode não funcionar streaming).")
+        print("Erro ffmpeg:", e)
 
     # ==============================
-    # 3️⃣ UPLOAD PARA R2
+    # UPLOAD
     # ==============================
-
-    print("Upload para R2...")
 
     try:
+
         file_id = upload_para_r2(video_path)
-        print("Upload concluído")
 
         from app import app, db, Lance
 
@@ -171,19 +155,22 @@ def salvar_lance(buffer, sufixo):
         hora = timestamp.replace("-", ":")
 
         with app.app_context():
+
             novo_lance = Lance(
                 quadra="oratorio2",
                 data=data,
                 hora=hora,
                 drive_id=file_id
             )
+
             db.session.add(novo_lance)
             db.session.commit()
 
-        print(f"Lance {sufixo} registrado no banco")
+        print("Lance registrado no banco")
 
     except Exception as e:
-        print("Erro ao registrar lance:", e)
+        print("Erro upload:", e)
+
 
 # ==============================
 # LOOP PRINCIPAL
@@ -194,30 +181,75 @@ while True:
     ret1, frame1 = cap1.read()
     ret2, frame2 = cap2.read()
 
+    # ------------------------------
+    # CAMERA 1
+    # ------------------------------
+
     if ret1:
         buffer1.append(frame1)
+        last_frame_cam1 = time.time()
         cv2.imshow("Camera 1", frame1)
+
+    else:
+        print("Falha camera 1, reconectando...")
+        cap1.release()
+        cap1 = conectar_camera(RTSP_URL_1)
+        continue
+
+    # detectar congelamento
+    if time.time() - last_frame_cam1 > 3:
+        print("Camera 1 congelou, reiniciando")
+        cap1.release()
+        cap1 = conectar_camera(RTSP_URL_1)
+
+    # ------------------------------
+    # CAMERA 2
+    # ------------------------------
 
     if ret2:
         buffer2.append(frame2)
+        last_frame_cam2 = time.time()
         cv2.imshow("Camera 2", frame2)
+
+    else:
+        print("Falha camera 2, reconectando...")
+        cap2.release()
+        cap2 = conectar_camera(RTSP_URL_2)
+        continue
+
+    if time.time() - last_frame_cam2 > 3:
+        print("Camera 2 congelou, reiniciando")
+        cap2.release()
+        cap2 = conectar_camera(RTSP_URL_2)
+
+    # ------------------------------
 
     key = cv2.waitKey(1) & 0xFF
 
-    if key == ord('q') or key == ord('Q'):
-        print("Encerrando sistema")
+    if key == ord('q'):
         break
 
     pygame.event.pump()
 
     if joystick.get_button(0):
+
         if not cooldown:
+
             cooldown = True
-    
-            salvar_lance(buffer1, "cam1")
-            salvar_lance(buffer2, "cam2")
-    
+
+            # salva em thread para não travar sistema
+            threading.Thread(
+                target=salvar_lance,
+                args=(list(buffer1), "cam1")
+            ).start()
+
+            threading.Thread(
+                target=salvar_lance,
+                args=(list(buffer2), "cam2")
+            ).start()
+
             time.sleep(1)
+
             cooldown = False
 
 cap1.release()
