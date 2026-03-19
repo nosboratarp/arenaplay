@@ -4,20 +4,42 @@
 
 <h1>Quadra {{ quadra }}</h1>
 <a href="{{ url_for('dashboard') }}" class="btn-back">
-    ↝ Voltar para Quadras
+     Voltar para Quadras
 </a>
 <p>Selecione uma data</p>
+
+<input type="date" id="filtroData" class="filtro-input">
 
 <div class="cards-grid">
 
     {% for data in datas %}
         <div class="card"
-             onclick="window.location='/data/{{ quadra }}/{{ data[0] }}'">
+     data-data="{{ data[0] }}"
+     onclick="window.location='/data/{{ quadra }}/{{ data[0] }}'">
             <h3>{{ data[0] }}</h3>
             <p>Visualizar lances</p>
         </div>
     {% endfor %}
 
 </div>
+
+<script>
+document.getElementById("filtroData").addEventListener("change", function () {
+
+    let dataSelecionada = this.value;
+    let cards = document.querySelectorAll(".card");
+
+    cards.forEach(card => {
+        let dataCard = card.getAttribute("data-data");
+
+        if (!dataSelecionada || dataCard === dataSelecionada) {
+            card.style.display = "block";
+        } else {
+            card.style.display = "none";
+        }
+    });
+
+});
+</script>
 
 {% endblock %}

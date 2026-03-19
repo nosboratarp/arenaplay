@@ -708,4 +708,85 @@ h1{
 font-size:22px;
 }
 
+.watermark {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    color: rgba(255,255,255,0.7);
+    font-size: 14px;
+    font-weight: bold;
+    z-index: 10;
+    pointer-events: none;
+}
+
+
+}
+
+/* ===== FOOTER PROFISSIONAL ===== */
+
+.footer {
+    margin-left: 260px; /* acompanha sidebar */
+    padding: 30px 40px;
+    background: linear-gradient(180deg, #0f172a, #020617);
+    border-top: 1px solid #1f2937;
+}
+
+.footer-content {
+    max-width: 1000px;
+}
+
+.footer-content p {
+    color: #94a3b8;
+    font-size: 14px;
+    margin-bottom: 10px;
+}
+
+.footer-links {
+    margin-top: 10px;
+}
+
+.footer-links a {
+    margin-right: 15px;
+    text-decoration: none;
+    color: #22c55e;
+    font-weight: 600;
+    transition: 0.3s;
+}
+
+.footer-links a:hover {
+    color: #16a34a;
+}
+
+/* ===== MOBILE ===== */
+
+@media (max-width: 768px){
+    .footer {
+        margin-left: 0;
+        padding: 20px;
+        text-align: center;
+    }
+}
+
+.filtro-input {
+    margin: 15px 0 30px 0;
+    padding: 14px 18px;
+
+    font-size: 18px;
+    font-weight: bold;
+
+    border-radius: 12px;
+    border: 1px solid #1f2937;
+
+    background: #0f172a;
+    color: #ffffff;
+
+    width: 220px;
+
+    outline: none;
+    transition: 0.3s;
+}
+
+.filtro-input:focus {
+    border-color: #22c55e;
+    box-shadow: 0 0 0 2px rgba(34,197,94,0.2);
 }

@@ -13,12 +13,24 @@
     {% for hora, drive_id, status in lances %}
         <div class="video-card">
 
-            <div class="video-wrapper">
-                <video controls preload="metadata" width="100%" controlsList="nodownload">
-                    <source src="{{ r2_public_url }}/{{ drive_id }}" type="video/mp4">
-                    Seu navegador não suporta vídeo.
-                </video>
-            </div>
+                <div class="video-wrapper">
+                
+                    {% if status != 'PAGO' %}
+                        <div class="watermark">ArenaPlayFut</div>
+                    {% endif %}
+                
+                    <video 
+                        controls 
+                        preload="metadata" 
+                        width="100%" 
+                        controlsList="nodownload"
+                        class="{% if status != 'PAGO' %}blurred{% endif %}"
+                    >
+                        <source src="{{ r2_public_url }}/{{ drive_id }}" type="video/mp4">
+                        Seu navegador não suporta vídeo.
+                    </video>
+                
+                </div>
 
             <div class="video-info">
                 <div class="video-header">
@@ -39,7 +51,7 @@
                     </a>
 
                 {% elif status == 'CONSUMIDO' %}
-                    <span class="status-used">Download jÃ¡ realizado</span>
+                    <span class="status-used">Download já realizado</span>
 
                 {% else %}
                     <form method="POST"
@@ -56,5 +68,14 @@
     {% endfor %}
 
 </div>
+
+<!-- 🔒 BLOQUEIOS IMPORTANTES -->
+<script>
+    // bloquear botão direito
+    document.addEventListener('contextmenu', function(e) {
+        e.preventDefault();
+    });
+
+</script>
 
 {% endblock %}
