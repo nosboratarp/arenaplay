@@ -85,9 +85,9 @@ class Pagamento(db.Model):
     status = db.Column(db.String(20))
     criado_em = db.Column(db.DateTime, server_default=db.func.now())
 
-
-with app.app_context():
-    db.create_all()
+#Removido para melhorar a subida do site 08/04/2026 as 23:45
+#with app.app_context():
+#    db.create_all()
 
 # ================================
 # LOGIN
