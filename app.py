@@ -13,15 +13,17 @@ from flask import Response
 timestamp = datetime.now().strftime("%H-%M-%S")
 
 # ================================
-# CONFIGURAÃ‡ÃƒO APP
+# CONFIGURACAO APP
 # ================================
 
 app = Flask(__name__)
 app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "dev-secret-key")
 app.config["R2_PUBLIC_URL"] = os.environ.get("R2_PUBLIC_URL")
+# 🔐 ADMIN (coloque seu e-mail aqui)
+ADMIN_EMAIL = "robson_prata@hotmail.com"
 
 # ================================
-# CONFIGURAÃ‡ÃƒO BANCO
+# CONFIGURACAO BANCO
 # ================================
 
 database_url = os.environ.get("DATABASE_URL")
@@ -324,6 +326,38 @@ def verificar_pagamento(drive_id):
         return {"status": "PAGO"}
 
     return {"status": "PENDENTE"}
+
+# ================================
+# RELATORIO DE PAGAMENTO
+# ================================
+from sqlalchemy import func
+
+@app.route("/relatorio")
+def relatorio():
+    if "user" not in session:
+        return redirect("/")
+
+    if session["user"] != ADMIN_EMAIL:
+        return "Acesso negado", 403
+
+    # 🔥 DEFINE A EXPRESSÃO UMA VEZ
+    mes_ref = func.date_trunc('month', Pagamento.criado_em)
+
+    dados = (
+        db.session.query(
+            func.to_char(mes_ref, 'YYYY-MM').label('mes'),
+            func.count(Pagamento.id).label('total_pagamentos'),
+            func.coalesce(func.sum(Pagamento.valor), 0).label('faturamento_total'),
+            (func.coalesce(func.sum(Pagamento.valor), 0) * 0.7).label('arenaplay'),
+            (func.coalesce(func.sum(Pagamento.valor), 0) * 0.3).label('oratorio'),
+        )
+        .filter(Pagamento.status == "PAGO")
+        .group_by(mes_ref)  # 🔥 usa a MESMA variável
+        .order_by(mes_ref.desc())
+        .all()
+    )
+
+    return render_template("relatorio.html", dados=dados)
 
 # ================================
 # LOGOUT

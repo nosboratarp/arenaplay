@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Relatório Financeiro</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+
+<div class="content">
+    <h1>📊 Relatório Financeiro</h1>
+
+    <table border="1" cellpadding="10" cellspacing="0">
+        <tr>
+            <th>Mês</th>
+            <th>Pagamentos</th>
+            <th>Faturamento</th>
+            <th>ArenaPlay (70%)</th>
+            <th>Oratório (30%)</th>
+        </tr>
+
+        {% for mes, total, faturamento, a, o in dados %}
+        <tr>
+            <td>{{ mes }}</td>
+            <td>{{ total }}</td>
+            <td>R$ {{ "%.2f"|format(faturamento) }}</td>
+            <td>R$ {{ "%.2f"|format(a) }}</td>
+            <td>R$ {{ "%.2f"|format(o) }}</td>
+        </tr>
+        {% endfor %}
+    </table>
+
+</div>
+
+</body>
+</html>
