@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking ArenaPlay</title>
+
+    <style>
+
+        body{
+            margin:0;
+            padding:0;
+            background:#0f172a;
+            color:white;
+            font-family:Arial, Helvetica, sans-serif;
+        }
+
+        .container{
+            width:95%;
+            max-width:1400px;
+            margin:auto;
+            padding:30px 0;
+        }
+
+        h1{
+            text-align:center;
+            margin-bottom:30px;
+            font-size:42px;
+            color:#22c55e;
+        }
+
+        h2{
+            margin-top:40px;
+            margin-bottom:15px;
+            color:#f8fafc;
+        }
+
+        .filtros{
+            background:#1e293b;
+            padding:20px;
+            border-radius:16px;
+            display:flex;
+            gap:15px;
+            align-items:center;
+            flex-wrap:wrap;
+            margin-bottom:30px;
+        }
+
+        .filtros label{
+            font-weight:bold;
+        }
+
+        .filtros input,
+        .filtros select{
+            padding:10px;
+            border:none;
+            border-radius:8px;
+            background:#334155;
+            color:white;
+        }
+
+        .filtros button{
+            padding:12px 22px;
+            border:none;
+            border-radius:10px;
+            background:#22c55e;
+            color:white;
+            font-weight:bold;
+            cursor:pointer;
+            transition:0.3s;
+        }
+
+        .filtros button:hover{
+            background:#16a34a;
+        }
+
+        .cards{
+            display:grid;
+            grid-template-columns:1fr 1fr 1fr;
+            gap:20px;
+        }
+
+        .card{
+            background:#1e293b;
+            border-radius:18px;
+            padding:20px;
+            box-shadow:0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        table{
+            width:100%;
+            border-collapse:collapse;
+        }
+
+        th{
+            background:#22c55e;
+            color:white;
+            padding:14px;
+            text-align:left;
+        }
+
+        td{
+            padding:14px;
+            border-bottom:1px solid #334155;
+        }
+
+        tr:hover{
+            background:#334155;
+        }
+
+        .top1{
+            color:gold;
+            font-weight:bold;
+        }
+
+        .top2{
+            color:silver;
+            font-weight:bold;
+        }
+
+        .top3{
+            color:#cd7f32;
+            font-weight:bold;
+        }
+
+        @media(max-width:1000px){
+
+            .cards{
+                grid-template-columns:1fr;
+            }
+
+            h1{
+                font-size:32px;
+            }
+        }
+
+    </style>
+</head>
+<body>
+
+<div class="container">
+
+    <h1>🏆 Ranking ArenaPlay</h1>
+
+    <form method="GET" class="filtros">
+
+        <div>
+            <label>Mês</label><br>
+            <input type="month" name="mes" value="{{ mes }}">
+        </div>
+
+        <div>
+            <label>Tipo</label><br>
+            <select name="tipo">
+                <option value="gols">⚽ Gols</option>
+                <option value="assistencias">🎯 Assistências</option>
+            </select>
+        </div>
+
+        <div>
+            <br>
+            <button type="submit">Filtrar</button>
+        </div>
+
+    </form>
+
+    <div class="cards">
+
+        <!-- Ranking do período -->
+        <div class="card">
+
+            <h2>📅 Ranking do Período</h2>
+
+            <table>
+
+                <tr>
+                    <th>#</th>
+                    <th>Jogador</th>
+                    <th>Total</th>
+                </tr>
+
+                {% for row in ranking_mes %}
+                <tr>
+                    <td class="
+                        {% if loop.index == 1 %}top1{% endif %}
+                        {% if loop.index == 2 %}top2{% endif %}
+                        {% if loop.index == 3 %}top3{% endif %}
+                    ">
+                        {{ loop.index }}
+                    </td>
+
+                    <td>{{ row.jogador }}</td>
+                    <td>{{ row.total }}</td>
+                </tr>
+                {% endfor %}
+
+            </table>
+
+        </div>
+
+        <!-- Artilharia -->
+        <div class="card">
+
+            <h2>⚽ Artilharia Geral</h2>
+
+            <table>
+
+                <tr>
+                    <th>#</th>
+                    <th>Jogador</th>
+                    <th>Gols</th>
+                </tr>
+
+                {% for row in ranking_gols %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ row.jogador }}</td>
+                    <td>{{ row.total_gols }}</td>
+                </tr>
+                {% endfor %}
+
+            </table>
+
+        </div>
+
+        <!-- Assistências -->
+        <div class="card">
+
+            <h2>🎯 Assistências Geral</h2>
+
+            <table>
+
+                <tr>
+                    <th>#</th>
+                    <th>Jogador</th>
+                    <th>Assistências</th>
+                </tr>
+
+                {% for row in ranking_assistencias %}
+                <tr>
+                    <td>{{ loop.index }}</td>
+                    <td>{{ row.jogador }}</td>
+                    <td>{{ row.total_assistencias }}</td>
+                </tr>
+                {% endfor %}
+
+            </table>
+
+        </div>
+
+    </div>
+
+</div>
+
+</body>
+</html>

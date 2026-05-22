@@ -86,6 +86,17 @@ class Pagamento(db.Model):
     valor = db.Column(db.Float)
     status = db.Column(db.String(20))
     criado_em = db.Column(db.DateTime, server_default=db.func.now())
+    
+class Estatistica(db.Model):
+    __tablename__ = "estatisticas"
+
+    id = db.Column(db.Integer, primary_key=True)
+    data = db.Column(db.Date)
+    rodada = db.Column(db.Integer)
+    jogo = db.Column(db.Integer)
+    jogador = db.Column(db.String(100))
+    gols = db.Column(db.Integer, default=0)
+    assistencias = db.Column(db.Integer, default=0)    
 
 #Removido para melhorar a subida do site 08/04/2026 as 23:45
 #with app.app_context():
@@ -358,6 +369,85 @@ def relatorio():
     )
 
     return render_template("relatorio.html", dados=dados)
+
+# ================================
+# RELATORIO DE ranking
+# ================================
+from sqlalchemy import func, extract
+
+@app.route("/ranking")
+def ranking():
+
+    if "user" not in session:
+        return redirect("/")
+
+    # ==============================
+    # FILTROS
+    # ==============================
+
+    mes = request.args.get("mes")
+    tipo = request.args.get("tipo", "gols")
+
+    query = db.session.query(
+        Estatistica.jogador,
+        func.sum(
+            Estatistica.gols if tipo == "gols"
+            else Estatistica.assistencias
+        ).label("total")
+    )
+
+    if mes:
+        query = query.filter(
+            func.to_char(Estatistica.data, 'YYYY-MM') == mes
+        )
+
+    ranking_mes = (
+        query
+        .group_by(Estatistica.jogador)
+        .order_by(func.sum(
+            Estatistica.gols if tipo == "gols"
+            else Estatistica.assistencias
+        ).desc())
+        .all()
+    )
+
+    # ==============================
+    # RANKING GERAL GOLS
+    # ==============================
+
+    ranking_gols = (
+        db.session.query(
+            Estatistica.jogador,
+            func.sum(Estatistica.gols).label("total_gols")
+        )
+        .group_by(Estatistica.jogador)
+        .order_by(func.sum(Estatistica.gols).desc())
+        .all()
+    )
+
+    # ==============================
+    # RANKING GERAL ASSISTENCIAS
+    # ==============================
+
+    ranking_assistencias = (
+        db.session.query(
+            Estatistica.jogador,
+            func.sum(Estatistica.assistencias).label("total_assistencias")
+        )
+        .group_by(Estatistica.jogador)
+        .order_by(func.sum(Estatistica.assistencias).desc())
+        .all()
+    )
+
+    return render_template(
+        "ranking.html",
+        ranking_mes=ranking_mes,
+        ranking_gols=ranking_gols,
+        ranking_assistencias=ranking_assistencias,
+        mes=mes,
+        tipo=tipo
+    )
+
 
 # ================================
 # LOGOUT
