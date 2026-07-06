@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+
+<title>Jogadores ArenaPlay</title>
+
+<style>
+
+body{
+    background:#0f172a;
+    color:white;
+    font-family:Arial;
+}
+
+.container{
+    width:90%;
+    max-width:1200px;
+    margin:auto;
+    padding:20px;
+}
+
+.card{
+    background:#1e293b;
+    padding:20px;
+    border-radius:15px;
+    margin-bottom:20px;
+}
+
+input, select{
+    padding:10px;
+    border:none;
+    border-radius:8px;
+    margin-right:10px;
+}
+
+button{
+    padding:10px 20px;
+    border:none;
+    border-radius:8px;
+    background:#22c55e;
+    color:white;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+
+th{
+    background:#22c55e;
+    padding:12px;
+}
+
+td{
+    padding:12px;
+    border-bottom:1px solid #334155;
+}
+
+tr:hover{
+    background:#334155;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>👥 Cadastro de Jogadores</h1>
+
+<div class="card">
+
+<form method="POST">
+
+    <input
+        type="text"
+        name="nome"
+        placeholder="Nome do jogador"
+        required
+    >
+
+     <select name="nivel">
+     
+         <option value="5.0">5.0</option>
+         <option value="4.5">4.5</option>
+         <option value="4.0">4.0</option>
+         <option value="3.5">3.5</option>
+         <option value="3.0">3.0</option>
+         <option value="2.5">2.5</option>
+         <option value="2.0">2.0</option>
+         <option value="1.5">1.5</option>
+         <option value="1.0">1.0</option>
+     
+     </select>
+
+    <button type="submit">
+        Salvar
+    </button>
+
+</form>
+
+</div>
+
+<div class="card">
+
+<h2>Jogadores Cadastrados</h2>
+
+<table>
+
+<tr>
+    <th>ID</th>
+    <th>Nome</th>
+    <th>Nível</th>
+    <th>Pote</th>
+</tr>
+
+{% for jogador in jogadores %}
+
+<tr>
+
+    <td>{{ jogador.id }}</td>
+
+    <td>{{ jogador.nome }}</td>
+
+    <td>{{ jogador.nivel }}</td>
+
+    <td>{{ 7 - jogador.nivel }}</td>
+
+</tr>
+
+{% endfor %}
+
+</table>
+
+</div>
+
+</div>
+
+</body>
+</html>

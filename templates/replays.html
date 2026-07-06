@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ArenaPlay - Replays</title>
+
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+
+<div class="content">
+
+    <h1>🎥 Replays</h1>
+
+    <p>Escolha a quadra para visualizar os lances</p>
+
+    <div class="quadras-grid">
+
+        <div class="quadra-card" onclick="window.location='/quadra/oratorio1'">
+            <h3>⚽ Copa Batistão</h3>
+            <p>Ver lances e replays</p>
+        </div>
+
+        <div class="quadra-card" onclick="window.location='/quadra/oratorio2'">
+            <h3>⚽ Oratório 2</h3>
+            <p>Ver lances e replays</p>
+        </div>
+
+        <div class="quadra-card" onclick="window.location='/quadra/oratorio3'">
+            <h3>⚽ Arena Mais</h3>
+            <p>Ver lances e replays</p>
+        </div>
+
+    </div>
+
+    <br><br>
+
+    <div style="text-align:center;">
+        <button onclick="window.location='/dashboard'"
+            style="
+                background:#00d26a;
+                color:white;
+                border:none;
+                padding:12px 25px;
+                border-radius:8px;
+                cursor:pointer;
+                font-size:16px;
+            ">
+            ⬅ Voltar ao Dashboard
+        </button>
+    </div>
+
+</div>
+
+</body>
+</html>

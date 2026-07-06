@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Resultado do Sorteio</title>
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+
+<div class="content">
+
+    <h1>🏆 Resultado do Sorteio</h1>
+
+    <p>Times gerados automaticamente pelo ArenaPlay.</p>
+
+    <div class="quadras-grid">
+
+        {% for time in times %}
+
+        <div class="quadra-card">
+
+            <h2>⚽ Time {{ loop.index }}</h2>
+
+            <hr>
+
+            {% for jogador in time.jogadores %}
+
+                <p>
+
+                    <strong>{{ jogador.nome }}</strong>
+
+                    <span style="float:right;color:#00d26a;">
+                        {{ jogador.nivel }}
+                    </span>
+
+                </p>
+
+            {% endfor %}
+
+            <hr>
+
+            <h3 style="color:#00d26a;">
+
+                Média: {{ "%.1f"|format(time.soma) }}
+
+            </h3>
+
+        </div>
+
+        {% endfor %}
+
+    </div>
+
+    <br>
+
+    <a href="/sorteio">
+        <button class="btn-primary">
+            🔄 Novo Sorteio
+        </button>
+    </a>
+
+</div>
+
+</body>
+</html>

@@ -96,8 +96,34 @@ class Estatistica(db.Model):
     jogo = db.Column(db.Integer)
     jogador = db.Column(db.String(100))
     gols = db.Column(db.Integer, default=0)
-    assistencias = db.Column(db.Integer, default=0)    
+    assistencias = db.Column(db.Integer, default=0)   
 
+class Jogador(db.Model):
+    __tablename__ = "jogadores"
+
+    id = db.Column(db.Integer, primary_key=True)
+    nome = db.Column(db.String(100), unique=True, nullable=False)
+    nivel = db.Column(db.Float, nullable=False)
+    ativo = db.Column(db.Boolean, default=True)
+    criado_em = db.Column(db.DateTime, server_default=db.func.now())
+
+
+class Sorteio(db.Model):
+    __tablename__ = "sorteios"
+
+    id = db.Column(db.Integer, primary_key=True)
+    usuario = db.Column(db.String(120))
+    criado_em = db.Column(db.DateTime, server_default=db.func.now())
+
+
+class SorteioJogador(db.Model):
+    __tablename__ = "sorteio_jogadores"
+
+    id = db.Column(db.Integer, primary_key=True)
+    sorteio_id = db.Column(db.Integer)
+    jogador_id = db.Column(db.Integer)
+    time_numero = db.Column(db.Integer)
+    
 #Removido para melhorar a subida do site 08/04/2026 as 23:45
 #with app.app_context():
 #    db.create_all()
@@ -447,8 +473,151 @@ def ranking():
         mes=mes,
         tipo=tipo
     )
+# ================================
+# Sorteio
+# ================================
+import random
 
+@app.route("/sorteio")
+def sorteio():
 
+    if "user" not in session:
+        return redirect("/")
+
+    jogadores = (
+        Jogador.query
+        .filter_by(ativo=True)
+        .order_by(Jogador.nome)
+        .all()
+    )
+
+    return render_template(
+        "sorteio.html",
+        jogadores=jogadores
+    )
+
+# ================================
+# Sortear
+# ================================
+    
+@app.route("/sortear", methods=["POST"])
+def sortear():
+
+    if "user" not in session:
+        return redirect("/")
+
+    qtd_times = int(request.form["qtd_times"])
+
+    ids = [int(i) for i in request.form.getlist("jogadores")]
+
+    if not ids:
+        return redirect("/sorteio")
+
+    jogadores = (
+        Jogador.query
+        .filter(Jogador.id.in_(ids))
+        .all()
+    )
+
+    jogadores.sort(
+        key=lambda x: float(x.nivel),
+        reverse=True
+    )
+
+    times = []
+
+    for _ in range(qtd_times):
+        times.append({
+            "jogadores": [],
+            "soma": 0
+        })
+
+    for jogador in jogadores:
+    
+        menor_time = min(
+            times,
+            key=lambda t: t["soma"]
+        )
+    
+        menor_time["jogadores"].append(jogador)
+    
+        menor_time["soma"] += float(jogador.nivel)
+    
+    # Salva o sorteio
+    novo_sorteio = Sorteio(
+        usuario=session["user"]
+    )
+    
+    db.session.add(novo_sorteio)
+    db.session.commit()
+    
+    # Salva os jogadores do sorteio
+    for indice, time in enumerate(times):
+    
+        for jogador in time["jogadores"]:
+    
+            item = SorteioJogador(
+                sorteio_id=novo_sorteio.id,
+                jogador_id=jogador.id,
+                time_numero=indice + 1
+            )
+    
+            db.session.add(item)
+    
+    db.session.commit()
+    
+    return render_template(
+        "resultado_sorteio.html",
+        times=times
+    )   
+# ================================
+# Jogadores
+# ================================
+@app.route("/jogadores", methods=["GET", "POST"])
+def jogadores():
+
+    if "user" not in session:
+        return redirect("/")
+
+    if request.method == "POST":
+
+        nome = request.form["nome"].strip()
+        nivel = float(request.form["nivel"])
+
+        existe = Jogador.query.filter_by(nome=nome).first()
+
+        if not existe:
+
+            novo = Jogador(
+                nome=nome,
+                nivel=nivel
+            )
+
+            db.session.add(novo)
+            db.session.commit()
+
+        return redirect("/jogadores")
+
+    jogadores = (
+        Jogador.query
+        .order_by(Jogador.nivel.desc(), Jogador.nome)
+        .all()
+    )
+
+    return render_template(
+        "jogadores.html",
+        jogadores=jogadores
+    )
+# ================================
+# replays
+# ================================   
+@app.route("/replays")
+def replays():
+
+    if "user" not in session:
+        return redirect("/")
+
+    return render_template("replays.html")    
 # ================================
 # LOGOUT
 # ================================
